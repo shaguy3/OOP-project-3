@@ -34,7 +34,7 @@ void County::resizeChosenElectors() {
 }
 
 County::County() :
-    name(nullptr),
+    name(""),
     id(0),
     number_of_electors(0),
     is_relative(0),
@@ -47,7 +47,8 @@ County::County() :
     chosen_electors(nullptr)
 {}
 
-County::County(char* _name, int _number_of_electors, bool _is_relative) :
+County::County(string _name, int _number_of_electors, bool _is_relative) :
+    name(_name),
     id(County::num_of_counties),
     number_of_electors(_number_of_electors),
     is_relative(_is_relative),
@@ -56,15 +57,6 @@ County::County(char* _name, int _number_of_electors, bool _is_relative) :
     chosen_electors_logi(0),
     residents_num_size(5),
     chosen_electors_size(5) {
-
-    name = new char[strlen(_name) + 1];
-
-    int cur_char = 0;
-    while (_name[cur_char] != '\0') {
-        name[cur_char] = _name[cur_char];
-        cur_char++;
-    }
-    name[cur_char] = '\0';
 
     residents = new Citizen * [residents_num_size];
     chosen_electors = new Citizen * [chosen_electors_size];
@@ -114,7 +106,7 @@ ostream& operator<<(ostream& os, const County& county) {
 
 void County::operator=(const County& other) {
     if (this != &other) {
-        name = strdup(other.name);
+        name = other.name;
         id = other.id;
         is_relative = other.is_relative;
         number_of_electors = other.number_of_electors;
@@ -137,7 +129,6 @@ void County::operator=(const County& other) {
 }
 
 County::~County() {
-    delete[] name;
     delete[] residents;
     delete[] chosen_electors;
 }
@@ -145,7 +136,7 @@ County::~County() {
 void County::save(ostream& out) const
 {
     /*Saving the name*/
-    int len = strlen(name);
+    int len = name.size();
     out.write(rcastcc(&len), sizeof(len));  
     for (int i = 0; i < len; i++)
     {
@@ -184,7 +175,7 @@ void County::load(istream& in)
 {
     int len;
     in.read(rcastc(&len), sizeof(len));
-    name = new char[len + 1];
+    name.resize(len);
     for (int i = 0; i < len; i++)
     {
         in.read(rcastc(&name[i]), sizeof(char));

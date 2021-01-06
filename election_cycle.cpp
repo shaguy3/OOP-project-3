@@ -66,9 +66,9 @@ Citizen* ElectionCycle::getResident(int id) const {
     return nullptr;
 }
 
-Party* ElectionCycle::getParty(char* party_name) const {
+Party* ElectionCycle::getParty(string party_name) const {
     for (int i = 0; i < parties_num_logi; i++) {
-        if (!strcmp(parties[i]->getName(), party_name)) {
+        if (parties[i]->getName() == party_name) {
             return parties[i];
         }
     }

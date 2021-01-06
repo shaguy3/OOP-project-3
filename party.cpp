@@ -12,19 +12,10 @@ Party::Party() :
     party_reps(nullptr)
 {}
 
-Party::Party(char* _name, Citizen* _party_leader)
-    : party_leader(_party_leader), id(number_of_parties),
+Party::Party(string _name, Citizen* _party_leader)
+    : name(_name), party_leader(_party_leader), id(number_of_parties),
     party_size(5), party_size_logi(0)
 {
-    name = new char[strlen(_name) + 1];
-
-    int cur_char = 0;
-    while (_name[cur_char] != '\0') {
-        name[cur_char] = _name[cur_char];
-        cur_char++;
-    }
-    name[cur_char] = '\0';
-
     party_reps = new Citizen * [party_size];
 
     number_of_parties++;
@@ -32,7 +23,6 @@ Party::Party(char* _name, Citizen* _party_leader)
 
 Party::~Party()
 {
-    delete[] name;
     delete[] party_reps;
 }
 
@@ -89,7 +79,7 @@ ostream& operator<<(ostream& os, const Party& party)
 
 void Party::save(ostream& out) const {
     /*Saving the name*/
-    int len = strlen(name);
+    int len = name.size();
     out.write(rcastcc(&len), sizeof(len));
     for (int i = 0; i < len; i++)
     {
@@ -121,7 +111,7 @@ void Party::load(istream& in) {
     /*Loading the name*/
     int len;
     in.read(rcastc(&len), sizeof(len));
-    name = new char[len + 1];
+    name.resize(len);
     for (int i = 0; i < len; i++)
     {
         in.read(rcastc(&name[i]), sizeof(char));

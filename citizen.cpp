@@ -1,7 +1,7 @@
 #include "citizen.h"
 
 Citizen::Citizen() :
-    name(nullptr),
+    name(""),
     id(0),
     year_of_birth(0),
     home_county(nullptr),
@@ -9,26 +9,15 @@ Citizen::Citizen() :
     has_voted(nullptr)
 {}
 
-Citizen::Citizen(const char* _name, int _id, int _year_of_birth, County* _home_county)
-    : id(_id), year_of_birth(_year_of_birth),
+Citizen::Citizen(const string _name, int _id, int _year_of_birth, County* _home_county)
+    : name(_name), id(_id), year_of_birth(_year_of_birth),
     home_county(_home_county),
     is_representative(nullptr),
     has_voted(nullptr)
-{
-    name = new char[strlen(_name) + 1];
-
-    int cur_char = 0;
-    while (_name[cur_char] != '\0') {
-        name[cur_char] = _name[cur_char];
-        cur_char++;
-    }
-    name[cur_char] = '\0';
-}
+{}
 
 Citizen::~Citizen()
-{
-    delete[] name;
-}
+{}
 
 std::ostream& operator<<(std::ostream& os, const Citizen& other)
 {
@@ -47,7 +36,7 @@ std::ostream& operator<<(std::ostream& os, const Citizen& other)
 
 void Citizen::operator=(const Citizen& other) {
     if (this != &other) {
-        name = strdup(other.name);
+        name = other.name;
         id = other.id;
         year_of_birth = other.year_of_birth;
         home_county = other.home_county;
@@ -76,7 +65,7 @@ bool Citizen::setHomeCounty(County* county) {
 
 void Citizen::save(ostream& out) const {
     /*Saving the name*/
-    int len = strlen(name);
+    int len = name.size();
     out.write(rcastcc(&len), sizeof(len));
     for (int i = 0; i < len; i++)
     {
@@ -109,12 +98,11 @@ void Citizen::load(istream& in) {
     /*Loading the name*/
     int len;
     in.read(rcastc(&len), sizeof(len));
-    name = new char[len + 1];
+    name.resize(len);
     for (int i = 0; i < len; i++)
     {
         in.read(rcastc(&name[i]), sizeof(char));
     }
-    name[len] = '\0';
 
     /*Loading the id*/
     in.read(rcastc(&id), sizeof(id));

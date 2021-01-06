@@ -4,6 +4,7 @@
 #include <string.h>
 #include <typeinfo>
 #include <fstream>
+#include <string>
 
 using namespace std;
 
@@ -19,10 +20,10 @@ void swap(int& a, int& b)
 
 void addCounty(ComplexCycle* election_cycle) {
     bool isRelative;
-    char* county_name = new char[30];
+    string county_name;
     cin.ignore();
     cout << "Please enter the County's name: ";
-    cin.getline(county_name, 30);
+    getline(cin, county_name);
 
     char is_relative;
     cout << "Is the county relative (assignes it's electors relatively to the partie's vote percent)? (y/n): ";
@@ -49,17 +50,15 @@ void addCounty(ComplexCycle* election_cycle) {
     County* new_county = new County(county_name, number_of_electors, isRelative);
     election_cycle->addCounty(new_county);
 
-    delete[] county_name;
-
     cout << endl;
 }
 
 void addResident(ElectionCycle* election_cycle) {
 
-    char* resident_name = new char[30];
+    string resident_name;
     cin.ignore();
     cout << "Please enter the Resident's name: ";
-    cin.getline(resident_name, 30);
+    getline(cin, resident_name);
 
     int id = 0;
     cout << "Please enter the resident's ID: ";
@@ -114,16 +113,14 @@ void addResident(ElectionCycle* election_cycle) {
         Citizen* new_resident = new Citizen(resident_name, id, year_of_birth, nullptr);
         simple_cycle->addResident(new_resident);
     }
-
-    delete[] resident_name;
 }
 
 void addParty(ElectionCycle* election_cycle) {
     Citizen* party_leader = nullptr;
-    char* party_name = new char[30];
+    string party_name;
     cin.ignore();
     cout << "Please enter the party name: ";
-    cin.getline(party_name, 30);
+    getline(cin, party_name);
 
     int party_leader_id = 0;
     cout << "Please enter the ID of the party's Leader: ";
@@ -144,8 +141,6 @@ void addParty(ElectionCycle* election_cycle) {
     Party* new_party = new Party(party_name, party_leader);
     election_cycle->addParty(new_party);
     party_leader->makeRepresentative(new_party);
-
-    delete[] party_name;
 }
 
 void addPartyRep(ElectionCycle* election_cycle) {
@@ -167,12 +162,12 @@ void addPartyRep(ElectionCycle* election_cycle) {
         }
     } while (party_rep_id == -1);
 
-    char* party_name = new char[30];
+    string party_name;
     cin.ignore();
     cout << "Please enter the name of the party representative's party: ";
     do {
         
-        cin.getline(party_name, 30);
+        getline(cin, party_name);
         relevant_party = election_cycle->getParty(party_name);
         if (!relevant_party) {
             cin.ignore();
@@ -182,8 +177,6 @@ void addPartyRep(ElectionCycle* election_cycle) {
 
     relevant_citizen->makeRepresentative(relevant_party);
     relevant_party->addPartyRep(election_cycle->getResident(party_rep_id));
-
-    delete[] party_name;
 }
 
 void showCounties(ComplexCycle* election_cycle) {
@@ -231,10 +224,11 @@ void addVote(ElectionCycle* election_cycle) {
     } while (voter_id == -1);
 
     Party* voted_party = nullptr;
-    char* party_name = new char[30];
+    string party_name;
+    cin.ignore();
     cout << "Please enter the party name which the resident voted for: ";
     do {
-        cin >> party_name;
+        getline(cin, party_name);
         voted_party = election_cycle->getParty(party_name);
         if (!voted_party) {
             cout << "There is no party with that name. Please select an existing name: ";
@@ -244,8 +238,6 @@ void addVote(ElectionCycle* election_cycle) {
     voter->setVoted(voted_party);
     if (voter->getHomeCounty()) { voter->getHomeCounty()->addVote(); }
     election_cycle->addVote();
-
-    delete[] party_name;
 }
 
 void complexElectionResults(ComplexCycle* election_cycle) {

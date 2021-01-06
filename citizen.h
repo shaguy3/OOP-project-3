@@ -5,6 +5,7 @@
 #include "party.h"
 #include <string.h>
 #include <fstream>
+#include <string>
 
 #define rcastcc reinterpret_cast<const char*>
 #define rcastc reinterpret_cast<char*>
@@ -15,7 +16,7 @@ class Party;
 
 class Citizen {
 private:
-    char* name;
+    string name;
     int id;
     int year_of_birth;
     County* home_county;
@@ -25,11 +26,11 @@ private:
 public:
     /* Constructors & Destructors */
     Citizen();
-    Citizen(const char* _name, int _id, int _year_of_birth, County* _home_county);
+    Citizen(const string _name, int _id, int _year_of_birth, County* _home_county);
     ~Citizen();
 
     /* Getters */
-    const char* getName() const { return name; }
+    string getName() const { return name; }
     int getId() const { return id; }
     int getYearOfBirth() const { return year_of_birth; }
     County* getHomeCounty() const { return home_county; }

@@ -1,6 +1,7 @@
 #pragma once
 #include "citizen.h"
 #include <fstream>
+#include <string>
 
 #define rcastcc reinterpret_cast<const char*>
 #define rcastc reinterpret_cast<char*>
@@ -12,7 +13,7 @@ class Citizen;
 class County {
 
 private:
-    char* name;
+    string name;
     int id;
     bool is_relative;
     int number_of_electors;
@@ -30,12 +31,12 @@ public:
     static int num_of_counties;
     /* Counstructors and destructors */
     County();
-    County(char* _name, int _number_of_electors, bool _is_relative);
+    County(string _name, int _number_of_electors, bool _is_relative);
     County(const County& other);
     ~County();
 
     /* Getters */
-    char* getName() const { return name; }
+    string getName() const { return name; }
     int getId() const { return id; }
     bool isRelative() const { return is_relative; }
     int getVoteAmount() const { return current_vote_amount; }

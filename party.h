@@ -3,6 +3,7 @@
 #include "citizen.h"
 #include "county.h"
 #include <fstream>
+#include <string>
 
 #define rcastcc reinterpret_cast<const char*>
 #define rcastc reinterpret_cast<char*>
@@ -13,7 +14,7 @@ class Citizen;
 class Party {
     
 private:
-    char* name;                                 //name of the party
+    string name;                                 //name of the party
     int id;                                     //ID of the party 
     Citizen* party_leader;                      //Pointer to the party leader
     Citizen** party_reps;                       //array of party rep
@@ -25,11 +26,11 @@ public:
 
     /* Ctors & Dtors */
     Party();
-    Party(char* _name, Citizen* _party_leader);
+    Party(string _name, Citizen* _party_leader);
     ~Party();
 
     /* Getters */
-    char* getName() { return name; }
+    string getName() { return name; }
     int getId() { return id; }
     Citizen* getLeader() { return party_leader; }
     Citizen** getPartyReps() { return party_reps; }

@@ -37,7 +37,7 @@ public:
 
     /* Get specific items from the arrays */
     Citizen* getResident(int id) const;
-    Party* getParty(char* party_name) const;
+    Party* getParty(string party_name) const;
 
     /* Adders */
     bool addVote();
