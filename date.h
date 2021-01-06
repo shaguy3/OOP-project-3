@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <exception>
 
 #define rcastcc reinterpret_cast<const char*>
 #define rcastc reinterpret_cast<char*>
@@ -11,6 +12,7 @@ private:
 public:
 
     /* Constructors & Destructors */
+    Date();
     Date(int _day, int _month, int _year);
     ~Date();
 

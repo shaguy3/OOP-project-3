@@ -1,15 +1,12 @@
 #include "complex_cycle.h"
 #include "simple_cycle.h"
 #include <iostream>
-#include <string.h>
 #include <typeinfo>
 #include <fstream>
 #include <string>
+#include <vector>
 
 using namespace std;
-
-// Test commit
-
 
 const int VOTING_AGE = 16;
 
@@ -246,19 +243,26 @@ void complexElectionResults(ComplexCycle* election_cycle) {
 
     cout << "*****************Printing election results!********************" << endl << endl;
 
-    int** election_result = new int* [election_cycle->countieslen()];               //Number of votes for each party in each county
-    double** percentage_table = new double* [election_cycle->countieslen()];        //Percentage of received votes for each party in each county
-    int** elected_reps_nums = new int* [election_cycle->countieslen()];             //Number of electors for each party in each county 
-    Party** winner_per_county = new Party * [election_cycle->countieslen()];        //Winning party in each county
-    int* sorted_parties = new int[election_cycle->partieslen()];                    //Parties sorted from the most electors to less
-    int* electors_per_party = new int[election_cycle->partieslen()];                //Amount of electors that each party received
-    int* votes_per_party = new int[election_cycle->partieslen()];                   //Amount of votes that each party received
+    vector<vector<int>> election_result;                                            //Number of votes for each party in each county
+    election_result.resize(election_cycle->countieslen());
+    vector<vector<double>> percentage_table;                                        //Percentage of received votes for each party in each county
+    percentage_table.resize(election_cycle->countieslen());
+    vector<vector<int>> elected_reps_nums;                                          //Number of electors for each party in each county
+    elected_reps_nums.resize(election_cycle->countieslen());
+    vector<Party*> winner_per_county;                                               //Winning party in each county
+    winner_per_county.resize(election_cycle->countieslen());
+    vector<int> sorted_parties;                                                     //Parties sorted from the most electors to less
+    sorted_parties.resize(election_cycle->partieslen());
+    vector<int> electors_per_party;                                                 //Amount of electors that each party received
+    electors_per_party.resize(election_cycle->partieslen());
+    vector<int> votes_per_party;                                                    //Amount of votes that each party received
+    votes_per_party.resize(election_cycle->partieslen());
 
     for (int i = 0; i < election_cycle->countieslen(); i++)     // Initilization of two dimantional arrays
     {
-        election_result[i] = new int[election_cycle->partieslen()];
-        percentage_table[i] = new double[election_cycle->partieslen()];
-        elected_reps_nums[i] = new int[election_cycle->partieslen()];
+        election_result[i].resize(election_cycle->partieslen());
+        percentage_table[i].resize(election_cycle->partieslen());
+        elected_reps_nums[i].resize(election_cycle->partieslen());
         for (int j = 0; j < election_cycle->partieslen(); j++) {
             election_result[i][j] = 0;
             percentage_table[i][j] = 0;
@@ -378,36 +382,16 @@ void complexElectionResults(ComplexCycle* election_cycle) {
             << " with " << votes_per_party[sorted_parties[i]] << " votes" \
             << " and " << electors_per_party[sorted_parties[i]] << " electors. " << endl;
     }
-
-
-    /*Freeing all of the arrays that were used */
-
-    for (int i = 0; i < election_cycle->countieslen(); i++)
-        delete[] election_result[i];
-    delete[] election_result;
-
-    for (int i = 0; i < election_cycle->countieslen(); i++)
-        delete[] percentage_table[i];
-    delete[] percentage_table;
-
-    for (int i = 0; i < election_cycle->countieslen(); i++)
-        delete[] elected_reps_nums[i];
-    delete[] elected_reps_nums;
-
-    delete[] winner_per_county;
-    delete[] electors_per_party;
-    delete[] votes_per_party;
-    delete[] sorted_parties;
 }
 
 void simpleElectionResults(SimpleCycle* election_cycle) {
 
     cout << "*****************Printing election results!********************" << endl << endl;
 
-    int* election_results = new int[election_cycle->partieslen()];              //Number of votes for each party.
-    double* percentage_table = new double[election_cycle->partieslen()];        //Percentage of received votes for each party.
-    int* elected_reps_nums = new int[election_cycle->partieslen()];             //Number of electors for each party.
-    int* sorted_parties = new int[election_cycle->partieslen()];                //Parties sorted from the most electors to less.
+    vector<int> election_results; election_results.resize(election_cycle->partieslen());              //Number of votes for each party.
+    vector<double> percentage_table; percentage_table.resize(election_cycle->partieslen());           //Percentage of received votes for each party.
+    vector<int> elected_reps_nums; elected_reps_nums.resize(election_cycle->partieslen());            //Number of electors for each party.
+    vector<int> sorted_parties; sorted_parties.resize(election_cycle->partieslen());                  //Parties sorted from the most electors to less.
 
     /* Arrays initializations */
     for (int i = 0; i < election_cycle->partieslen(); i++) {
@@ -487,12 +471,6 @@ void simpleElectionResults(SimpleCycle* election_cycle) {
             << " with " << election_results[i] << " votes" \
             << " and " << elected_reps_nums[sorted_parties[i]] << " electors." << endl;
     }
-
-
-    delete[] sorted_parties;
-    delete[] elected_reps_nums;
-    delete[] percentage_table;
-    delete[] election_results;
 }
 
 void saveElectionCycle(ElectionCycle* election_cycle) {
@@ -675,10 +653,11 @@ void mainMenu(ElectionCycle* election_cycle) {
                 else {
 
                     bool valid_reps_nums = true;
-                    int** representatives_per_party_per_county = new int* [complex_cycle->partieslen()];
+                    vector<vector<int>> representatives_per_party_per_county;
+                    representatives_per_party_per_county.resize(election_cycle->partieslen());
                     for (int x = 0; x < complex_cycle->partieslen(); x++)    //Initilization of the bucket arrays(representatives_per_party_per_county)
                     {
-                        representatives_per_party_per_county[x] = new int[complex_cycle->countieslen()];
+                        representatives_per_party_per_county[x].resize(complex_cycle->countieslen());
                         for (int z = 0; z < complex_cycle->countieslen(); z++)
                             representatives_per_party_per_county[x][z] = 0;
                     }
@@ -699,10 +678,6 @@ void mainMenu(ElectionCycle* election_cycle) {
 
 
                     if (valid_reps_nums) { complexElectionResults(complex_cycle); }
-
-                    for (int i = 0; i < election_cycle->partieslen(); i++)  //Deleting the temp array
-                        delete[] representatives_per_party_per_county[i];
-                    delete[] representatives_per_party_per_county;
                 }
             }
             else {

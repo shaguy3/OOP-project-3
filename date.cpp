@@ -1,7 +1,20 @@
 #include "date.h"
 
+Date::Date() :
+    day(0), month(0), year(0) 
+{}
+
 Date::Date(int _day, int _month, int _year) :
-    day(_day), month(_month), year(_year) {}
+    day(0), month(0), year(0)
+{
+    if (_day > 31 || _day < 1) { throw invalid_argument("Invalid day num"); }
+    if (_month > 12 || _month < 1) { throw invalid_argument("Invalid month num"); }
+    if (_year <= 0) { throw invalid_argument("Invalid year num"); }
+
+    day = _day;
+    month = _month;
+    year = _year;
+}
 
 int Date::getDay() {
     return day;

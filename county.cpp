@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string.h>
 #include "county.h"
+#include <exception>
 
 using namespace std;
 
