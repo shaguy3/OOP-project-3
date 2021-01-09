@@ -1,5 +1,6 @@
 #include "complex_cycle.h"
 #include "simple_cycle.h"
+#include "dynamic_array.h"
 #include <iostream>
 #include <typeinfo>
 #include <fstream>
@@ -831,7 +832,20 @@ int main() {
         << "5. The leader of the party is automatically a party representative, but isn't included in party representative list per county. " << endl \
         << "6. Citizens can only represent their home county." << endl << endl;
 
-    firstMenu();
+    /*firstMenu();*/
+    DynamicArray<int> arr;
+    
+    arr.push_back(4);
+    arr.push_back(3);
+    arr.push_back(2);
+    arr.push_back(1);
+    arr.push_back(0);
+
+    arr.print();
+
+    arr.erase(arr.begin() + 1, arr.begin() + 3);
+
+    arr.print();
 
     return 0;
 }
