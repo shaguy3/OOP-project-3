@@ -4,53 +4,26 @@
 int Party::number_of_parties = 0;
 
 Party::Party() :
-    name(nullptr),
+    name(""),
     id(0),
     party_leader(nullptr),
-    party_size(0),
-    party_size_logi(0),
-    party_reps(nullptr)
+    party_reps(DynamicArray<Citizen*>())
 {}
 
 Party::Party(string _name, Citizen* _party_leader)
     : name(_name), party_leader(_party_leader), id(number_of_parties),
-    party_size(5), party_size_logi(0)
+    party_reps(DynamicArray<Citizen*>())
 {
-    party_reps = new Citizen * [party_size];
-
     number_of_parties++;
 }
 
-Party::~Party()
-{
-    delete[] party_reps;
-}
+Party::~Party() {}
 
 
 bool Party::addPartyRep(Citizen* new_rep)
 {
-    if (party_size_logi == party_size)
-        resizeParty();
-
-    party_reps[party_size_logi] = new_rep;
-    party_size_logi++;
-
+    party_reps.push_back(new_rep);
     return true;
-}
-
-void Party::resizeParty()
-{
-    int i;
-    party_size *= 2;
-    Citizen** new_arr = new Citizen * [party_size];
-    for (i = 0; i < party_size_logi; i++) {
-
-        new_arr[i] = party_reps[i];
-    }
-
-    delete[] party_reps;
-
-    party_reps = new_arr;
 }
 
 ostream& operator<<(ostream& os, const Party& party)
@@ -61,7 +34,7 @@ ostream& operator<<(ostream& os, const Party& party)
     if (County::num_of_counties > 0) {
         for (int i = 0; i < County::num_of_counties; i++) {
             os << "County num " << i << ":" << endl;
-            for (int j = 0; j < party.party_size_logi; j++) {
+            for (int j = 0; j < party.party_reps.size(); j++) {
                 if (party.party_reps[j]->getHomeCounty()->getId() == i) {
                     os << *party.party_reps[j] << endl << endl;
                 }
@@ -69,7 +42,7 @@ ostream& operator<<(ostream& os, const Party& party)
         }
     }
     else {
-        for (int i = 0; i < party.party_size_logi; i++) {
+        for (int i = 0; i < party.party_reps.size(); i++) {
             os << *party.party_reps[i] << endl << endl;
         }
     }
@@ -93,15 +66,13 @@ void Party::save(ostream& out) const {
     int leader_id = party_leader->getId();
     out.write(rcastcc(&leader_id), sizeof(leader_id));
 
-    /*Saving the party size*/
-    out.write(rcastcc(&party_size), sizeof(party_size));
-
     /*Saving the logical party size*/
-    out.write(rcastcc(&party_size_logi), sizeof(party_size_logi));
+    int party_reps_size = party_reps.size();
+    out.write(rcastcc(&party_reps_size), sizeof(party_reps_size));
 
     /*Saving the party reps*/
     int cur_rep_id = 0;
-    for (int i = 0; i < party_size_logi; i++) {
+    for (int i = 0; i < party_reps_size; i++) {
         cur_rep_id = party_reps[i]->getId();
         out.write(rcastcc(&cur_rep_id), sizeof(cur_rep_id));
     }

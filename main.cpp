@@ -11,9 +11,10 @@ using namespace std;
 
 const int VOTING_AGE = 16;
 
-void swap(int& a, int& b)
+template <class T>
+void genSwap(T& a, T& b)
 {
-    int temp = a;
+    T temp = a;
     a = b;
     b = temp;
 }
@@ -372,7 +373,7 @@ void complexElectionResults(ComplexCycle* election_cycle) {
     for (int i = 0; i < election_cycle->partieslen() - 1; i++) {
         for (int j = 0; j < election_cycle->partieslen() - i - 1; j++) {
             if (electors_per_party[j] < electors_per_party[j + 1]) {
-                swap(sorted_parties[j], sorted_parties[j + 1]);
+                genSwap(sorted_parties[j], sorted_parties[j + 1]);
             }
         }
     }
@@ -457,7 +458,7 @@ void simpleElectionResults(SimpleCycle* election_cycle) {
     for (int i = 0; i < election_cycle->partieslen() - 1; i++) {
         for (int j = 0; j < election_cycle->partieslen() - i - 1; j++) {
             if (elected_reps_nums[j] < elected_reps_nums[j + 1]) {
-                swap(sorted_parties[j], sorted_parties[j + 1]);
+                genSwap(sorted_parties[j], sorted_parties[j + 1]);
             }
         }
     }
@@ -816,9 +817,6 @@ void firstMenu() {
     default:
         break;
     }
-
-    if (election_cycle)
-        delete election_cycle;
 }
 
 int main() {

@@ -3,6 +3,7 @@
 #include "citizen.h"
 #include "party.h"
 #include "county.h"
+#include "dynamic_array.h"
 #include <iostream>
 #include <string.h>
 
@@ -12,14 +13,8 @@ class ElectionCycle {
 protected:
     int current_vote_amount;        //Increases when voting 
     Date date_of_election;
-    Citizen** residents;
-    int residents_num_size;
-    int residents_num_logi;
-    Party** parties;
-    int parties_num_size;
-    int parties_num_logi;
-    void resizeResidents();
-    void resizeParties();
+    DynamicArray<Citizen*> residents;
+    DynamicArray<Party*> parties;
 
 public:
     /* Constructors and destructors */
@@ -29,11 +24,11 @@ public:
 
     /* Getters */
     Date& getDate() { return date_of_election; }
-    Citizen** getResidents() const { return residents; }
-    Party** getParties() const { return parties; }
+    DynamicArray<Citizen*> getResidents() const { return residents; }
+    DynamicArray<Party*> getParties() const { return parties; }
     int getVoteAmount() const { return current_vote_amount; }
-    int residentslen() const { return residents_num_logi; }
-    int partieslen() const { return parties_num_logi; }
+    int residentslen() const { return residents.size(); }
+    int partieslen() const { return parties.size(); }
 
     /* Get specific items from the arrays */
     Citizen* getResident(int id) const;

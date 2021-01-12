@@ -1,12 +1,10 @@
 #pragma once
 #include "election_cycle.h"
+#include <vector>
 
 class ComplexCycle : public ElectionCycle {
 private:
-    County** counties;
-    int counties_num_size;
-    int counties_num_logi;
-    void resizeCounties();
+    DynamicArray<County*> counties;
 
 public:
     /* Constructors and destructors */
@@ -15,8 +13,8 @@ public:
     virtual ~ComplexCycle();
 
     /* Getters */
-    County** getCounties() const { return counties; }
-    int countieslen() const { return counties_num_logi; }
+    DynamicArray<County*> getCounties() const { return counties; }
+    int countieslen() const { return counties.size(); }
     County* getCounty(int id) const { return counties[id]; }
 
     /* Adders */

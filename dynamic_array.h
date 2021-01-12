@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 using namespace std;
 
@@ -7,6 +8,16 @@ class DynamicArray
 private:
 	void resize() {
 		_physicalSize *= 2;
+		T* temp = new T[_physicalSize];
+		for (int i = 0; i < _logicalSize; i++)
+			temp[i] = _arr[i];
+
+		delete[] _arr;
+		_arr = temp;
+	}
+
+	void resize(int new_size) {
+		_physicalSize = new_size;
 		T* temp = new T[_physicalSize];
 		for (int i = 0; i < _logicalSize; i++)
 			temp[i] = _arr[i];
@@ -55,6 +66,12 @@ public:
 	int      capacity() const { return _physicalSize; }
 	bool     empty()    const { return _logicalSize == 0; }
 	void     clear() { _logicalSize = 0; }
+
+	void set_size(int new_size) {
+		if (new_size > _physicalSize) { resize(2 * new_size); }
+
+		_logicalSize = new_size;
+	}
 
 	// example iterator implementation:
 	class iterator

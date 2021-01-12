@@ -1,5 +1,6 @@
 #pragma once
 #include "citizen.h"
+#include "dynamic_array.h"
 #include <fstream>
 #include <string>
 
@@ -18,14 +19,8 @@ private:
     bool is_relative;
     int number_of_electors;
     int current_vote_amount;
-    Citizen** residents;
-    int residents_num_size;
-    int residents_num_logi;
-    Citizen** chosen_electors;
-    int chosen_electors_size;
-    int chosen_electors_logi;
-    void resizeResidents();
-    void resizeChosenElectors();
+    DynamicArray<Citizen*> residents;
+    DynamicArray<Citizen*> chosen_electors;
 
 public:
     static int num_of_counties;
@@ -41,18 +36,18 @@ public:
     bool isRelative() const { return is_relative; }
     int getVoteAmount() const { return current_vote_amount; }
     int getNumberOfElectors() const { return number_of_electors; }
-    Citizen** getResidents() const { return residents; }
-    int residentsLen() const { return residents_num_logi; }
-    Citizen** getChosenElectors() const { return chosen_electors; }
-    int chosenElectorsLen() const { return chosen_electors_logi; }
+    DynamicArray<Citizen*> getResidents() const { return residents; }
+    int residentsLen() const { return residents.size(); }
+    DynamicArray<Citizen*> getChosenElectors() const { return chosen_electors; }
+    int chosenElectorsLen() const { return chosen_electors.size(); }
 
     /* Setters */
-    bool setChosenElectorsLen(int new_len) { chosen_electors_logi = new_len; return true; }
-    bool setChosenElectorsSize(int new_len){ chosen_electors_size = new_len; return true; }
-    bool init_chosen_electors() { chosen_electors = new Citizen * [chosen_electors_size]; return true; }
-    bool setResidentsLen(int new_len) { residents_num_logi = new_len; return true; }
-    bool setResidentsSize(int new_len) { residents_num_size = new_len; return true; }
-    bool init_residents() { residents = new Citizen * [residents_num_size]; return true; }
+    bool setChosenElectorsLen(int new_len) { chosen_electors.set_size(new_len); return true; }
+    // bool setChosenElectorsSize(int new_len){ chosen_electors_size = new_len; return true; }
+    // bool init_chosen_electors() { chosen_electors = new Citizen * [chosen_electors_size]; return true; }
+    bool setResidentsLen(int new_len) { residents.set_size(new_len); return true; }
+    // bool setResidentsSize(int new_len) { residents_num_size = new_len; return true; }
+    // bool init_residents() { residents = new Citizen * [residents_num_size]; return true; }
 
     /* Adders */
     bool addVote();

@@ -2,6 +2,7 @@
 
 #include "citizen.h"
 #include "county.h"
+#include "dynamic_array.h"
 #include <fstream>
 #include <string>
 
@@ -14,13 +15,11 @@ class Citizen;
 class Party {
     
 private:
-    string name;                                 //name of the party
+    string name;                                //name of the party
     int id;                                     //ID of the party 
     Citizen* party_leader;                      //Pointer to the party leader
-    Citizen** party_reps;                       //array of party rep
-    int party_size;
-    int party_size_logi;
-    void resizeParty();
+    DynamicArray<Citizen*> party_reps;          //array of party rep
+
 public:
     static int number_of_parties;
 
@@ -33,14 +32,11 @@ public:
     string getName() { return name; }
     int getId() { return id; }
     Citizen* getLeader() { return party_leader; }
-    Citizen** getPartyReps() { return party_reps; }
-    int partyRepsLen() const { return party_size_logi; }
+    DynamicArray<Citizen*> getPartyReps() { return party_reps; }
+    int partyRepsLen() const { return party_reps.size(); }
 
     /* Setters */
     bool setLeader(Citizen* leader) { party_leader = leader; return true; }
-    bool setPartySize(int _party_size) { party_size = _party_size; return true; }
-    bool setPartyLogi(int _party_logi) { party_size_logi = _party_logi; return true; }
-    bool initReps(int size) { party_reps = new Citizen * [size]; return true; }
 
     /* Methods */
     bool addPartyRep(Citizen* citizen);         //Add the citizen as party rep

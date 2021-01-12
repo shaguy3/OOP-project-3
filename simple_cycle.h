@@ -10,10 +10,7 @@ using namespace std;
 class SimpleCycle : public ElectionCycle {
 private:
 	int number_of_electors;
-	Citizen** chosen_electors;
-	int chosen_electors_size;
-	int chosen_electors_logi;
-	void resizeChosenElectors();
+	DynamicArray<Citizen*> chosen_electors;
 
 public:
 	/* Constructors and destructors */
@@ -23,14 +20,14 @@ public:
 
 	/* Getters */
 	int getNumberOfElectors() const { return number_of_electors; }
-	Citizen** getChosenElectors() const { return chosen_electors; }
-	int chosenElectorsLen() const { return chosen_electors_logi; }
+	DynamicArray<Citizen*> getChosenElectors() const { return chosen_electors; }
+	int chosenElectorsLen() const { return chosen_electors.size(); }
 
 	/* Adders */
 	bool addChosenElector(Citizen* chosen_elector);
 
 	/* Setters */
-	bool setChosenElectorsLen(int new_len) { chosen_electors_logi = new_len; return true; }
+	bool setChosenElectorsLen(int new_len) { chosen_electors.set_size(new_len); return true; }
 
 	/* Serialization */
 	virtual void save(ostream& out) const;

@@ -7,45 +7,14 @@ using namespace std;
 
 int County::num_of_counties = 0;
 
-void County::resizeResidents() {
-
-    residents_num_size *= 2;
-    Citizen** new_arr = new Citizen * [residents_num_size];
-
-    for (int i = 0; i < residents_num_logi; i++) {
-        new_arr[i] = residents[i];
-    }
-
-    delete[] residents;
-
-    residents = new_arr;
-}
-
-void County::resizeChosenElectors() {
-    chosen_electors_size *= 2;
-    Citizen** new_arr = new Citizen * [chosen_electors_size];
-
-    for (int i = 0; i < chosen_electors_logi; i++) {
-        new_arr[i] = chosen_electors[i];
-    }
-
-    delete[] chosen_electors;
-
-    chosen_electors = new_arr;
-}
-
 County::County() :
     name(""),
     id(0),
     number_of_electors(0),
     is_relative(0),
     current_vote_amount(0),
-    residents_num_logi(0),
-    chosen_electors_logi(0),
-    residents_num_size(0),
-    chosen_electors_size(0),
-    residents(nullptr),
-    chosen_electors(nullptr)
+    residents(DynamicArray<Citizen*>()),
+    chosen_electors(DynamicArray<Citizen*>())
 {}
 
 County::County(string _name, int _number_of_electors, bool _is_relative) :
@@ -54,14 +23,9 @@ County::County(string _name, int _number_of_electors, bool _is_relative) :
     number_of_electors(_number_of_electors),
     is_relative(_is_relative),
     current_vote_amount(0),
-    residents_num_logi(0),
-    chosen_electors_logi(0),
-    residents_num_size(5),
-    chosen_electors_size(5) {
-
-    residents = new Citizen * [residents_num_size];
-    chosen_electors = new Citizen * [chosen_electors_size];
-
+    residents(DynamicArray<Citizen*>()),
+    chosen_electors(DynamicArray<Citizen*>())
+{
     County::num_of_counties++;
 }
 
@@ -76,20 +40,12 @@ bool County::addVote() {
 }
 
 bool County::addResident(Citizen* new_resident) {
-    if (residents_num_logi == residents_num_size) { resizeResidents(); }
-
-    residents[residents_num_logi] = new_resident;
-    residents_num_logi++;
-
+    residents.push_back(new_resident);
     return true;
 }
 
 bool County::addChosenElector(Citizen* chosen_elector) {
-    if (chosen_electors_logi == chosen_electors_size) { resizeChosenElectors(); }
-
-    chosen_electors[chosen_electors_logi] = chosen_elector;
-    chosen_electors_logi++;
-
+    chosen_electors.push_back(chosen_elector);
     return true;
 }
 
@@ -112,27 +68,13 @@ void County::operator=(const County& other) {
         is_relative = other.is_relative;
         number_of_electors = other.number_of_electors;
         current_vote_amount = other.current_vote_amount;
-        residents_num_size = other.residents_num_size;
-        residents_num_logi = other.residents_num_logi;
-        chosen_electors_size = other.chosen_electors_size;
-        chosen_electors_logi = other.chosen_electors_logi;
 
-        residents = new Citizen * [residents_num_size];
-        for (int i = 0; i < residents_num_logi; i++) {
-            residents[i] = other.residents[i];
-        }
-
-        chosen_electors = new Citizen * [chosen_electors_size];
-        for (int i = 0; i < chosen_electors_logi; i++) {
-            chosen_electors[i] = other.chosen_electors[i];
-        }
+        residents = other.residents;
+        chosen_electors = other.chosen_electors;
     }
 }
 
-County::~County() {
-    delete[] residents;
-    delete[] chosen_electors;
-}
+County::~County() {}
 
 void County::save(ostream& out) const
 {
@@ -153,20 +95,16 @@ void County::save(ostream& out) const
     /*Saving the current vote amount*/
     out.write(rcastcc(&current_vote_amount), sizeof(current_vote_amount));
 
-    /*Saving the numbers of the residents*/
-    out.write(rcastcc(&residents_num_size), sizeof(residents_num_size));
-
     /*Saving number of the electors*/
     out.write(rcastcc(&number_of_electors), sizeof(number_of_electors));
 
-
-    /* Saving the physical and logical numbers of electors */
+    /* Saving the logical number of electors */
+    int chosen_electors_size = chosen_electors.size();
     out.write(rcastcc(&chosen_electors_size), sizeof(chosen_electors_size));
-    out.write(rcastcc(&chosen_electors_logi), sizeof(chosen_electors_logi));
 
     /* Saving the chosen elector's ids */
     int cur_id = 0;
-    for (int i = 0; i < chosen_electors_logi; i++) {
+    for (int i = 0; i < chosen_electors_size; i++) {
         cur_id = chosen_electors[i]->getId();
         out.write(rcastcc(&cur_id), sizeof(cur_id));
     }
@@ -186,9 +124,9 @@ void County::load(istream& in)
     in.read(rcastc(&id), sizeof(id));
     in.read(rcastc(&is_relative), sizeof(is_relative));
     in.read(rcastc(&current_vote_amount), sizeof(current_vote_amount));
-    in.read(rcastc(&residents_num_size), sizeof(residents_num_size));
     in.read(rcastc(&number_of_electors), sizeof(number_of_electors));
+
+    int chosen_electors_capacity, chosen_electors_size;
     in.read(rcastc(&chosen_electors_size), sizeof(chosen_electors_size));
-    in.read(rcastc(&chosen_electors_logi), sizeof(chosen_electors_logi));
-    
+    chosen_electors.set_size(chosen_electors_size);
 }
