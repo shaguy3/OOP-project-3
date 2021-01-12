@@ -57,7 +57,6 @@ public:
 	void     clear() { _logicalSize = 0; }
 
 	// example iterator implementation:
-	// (causes code duplication)
 	class iterator
 	{
 	private:
@@ -110,10 +109,6 @@ public:
 			return temp;
 		}
 
-		iterator& operator+(int val) {
-			_i += val;
-			return *this;
-		}
 		iterator& operator--() {
 			--_i;
 			return *this;
@@ -200,6 +195,23 @@ public:
 		*p = val;
 		++_logicalSize;
 	}
+
+	void insert(const const_iterator& pos, const T& val) {
+		if (_logicalSize == _physicalSize)
+			resize();
+
+		iterator itrEnd = end();
+		iterator itrCurrent = itrEnd, itrPrev = --itrEnd;
+		while (itrCurrent != pos)
+		{
+			*itrCurrent = *itrPrev;
+			itrCurrent = itrPrev--;
+		}
+
+		iterator p = pos;
+		*p = val;
+		++_logicalSize;
+	}
 		
 	const iterator& erase(const iterator& iter) 
 	{
@@ -244,7 +256,7 @@ public:
 		return itrCurrentFirst;
 	}
 
-	const iterator& erase(const const_iterator& iter)
+	const const_iterator& erase(const const_iterator& iter)
 	{
 		iterator itrEnd = end();
 		iterator temp = iter;
@@ -260,7 +272,7 @@ public:
 		return itrCurrent;
 	}
 
-	const iterator& erase(const const_iterator& first, const iterator& last)
+	const const_iterator& erase(const const_iterator& first, const iterator& last)
 	{
 		int counter = 0;
 		iterator itrEnd = end();
@@ -303,11 +315,19 @@ public:
 	}
 
 	iterator rbegin() {
-		return iterator(*this, _logicalSize);
+		return iterator(*this, _logicalSize - 1);
 	}
 
 	iterator rend() {
-		return iterator(*this, 0); 
+		return iterator(*this, -1);
+	}
+
+	const_iterator rcbegin() {
+		return const_iterator(*this, _logicalSize - 1);
+	}
+
+	const_iterator rcend() {
+		return const_iterator(*this, -1);
 	}
 
 	void print() const {
