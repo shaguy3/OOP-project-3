@@ -13,10 +13,9 @@ class Citizen;
 
 class County {
 
-private:
+protected:
     string name;
     int id;
-    bool is_relative;
     int number_of_electors;
     int current_vote_amount;
     DynamicArray<Citizen*> residents;
@@ -26,14 +25,13 @@ public:
     static int num_of_counties;
     /* Counstructors and destructors */
     County();
-    County(string _name, int _number_of_electors, bool _is_relative);
+    County(string _name, int _number_of_electors);
     County(const County& other);
-    ~County();
+    virtual ~County();
 
     /* Getters */
     string getName() const { return name; }
     int getId() const { return id; }
-    bool isRelative() const { return is_relative; }
     int getVoteAmount() const { return current_vote_amount; }
     int getNumberOfElectors() const { return number_of_electors; }
     DynamicArray<Citizen*> getResidents() const { return residents; }
@@ -43,11 +41,7 @@ public:
 
     /* Setters */
     bool setChosenElectorsLen(int new_len) { chosen_electors.set_size(new_len); return true; }
-    // bool setChosenElectorsSize(int new_len){ chosen_electors_size = new_len; return true; }
-    // bool init_chosen_electors() { chosen_electors = new Citizen * [chosen_electors_size]; return true; }
     bool setResidentsLen(int new_len) { residents.set_size(new_len); return true; }
-    // bool setResidentsSize(int new_len) { residents_num_size = new_len; return true; }
-    // bool init_residents() { residents = new Citizen * [residents_num_size]; return true; }
 
     /* Adders */
     bool addVote();
@@ -61,4 +55,15 @@ public:
     /*Serialization*/
     void save(ostream& out) const;
     void load(istream& in);
+};
+
+class RelativeCounty : public County {
+public:
+    RelativeCounty() : County() {}
+    RelativeCounty(string _name, int _number_of_electors) : 
+        County (_name, _number_of_electors) {}
+
+    virtual ~RelativeCounty() {}
+
+    friend ostream& operator<<(ostream& os, const RelativeCounty& county);
 };

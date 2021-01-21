@@ -11,21 +11,23 @@ County::County() :
     name(""),
     id(0),
     number_of_electors(0),
-    is_relative(0),
     current_vote_amount(0),
     residents(DynamicArray<Citizen*>()),
     chosen_electors(DynamicArray<Citizen*>())
 {}
 
-County::County(string _name, int _number_of_electors, bool _is_relative) :
+County::County(string _name, int _number_of_electors) :
     name(_name),
     id(County::num_of_counties),
     number_of_electors(_number_of_electors),
-    is_relative(_is_relative),
     current_vote_amount(0),
     residents(DynamicArray<Citizen*>()),
     chosen_electors(DynamicArray<Citizen*>())
 {
+    if (_number_of_electors < 1) {
+        throw invalid_argument("Simple cycle: Number of electors is not valid.");
+    }
+
     County::num_of_counties++;
 }
 
@@ -50,13 +52,15 @@ bool County::addChosenElector(Citizen* chosen_elector) {
 }
 
 ostream& operator<<(ostream& os, const County& county) {
-    os << "ID: " << county.id << " Name: " << county.name << ", Number of electors: " << county.number_of_electors << endl;
-    if (county.is_relative) {
-        os << "The county is relative." << endl;
-    }
-    else {
-        os << "The county is not relative." << endl;
-    }
+    os << "ID: " << county.id << " Name: " << county.name << ", Number of electors: " << county.number_of_electors << endl
+       << "The county is not relative." << endl;
+
+    return os;
+}
+
+ostream& operator<<(ostream& os, const RelativeCounty& county) {
+    os << "ID: " << county.id << " Name: " << county.name << ", Number of electors: " << county.number_of_electors << endl
+        << "The county is relative." << endl;
 
     return os;
 }
@@ -65,7 +69,6 @@ void County::operator=(const County& other) {
     if (this != &other) {
         name = other.name;
         id = other.id;
-        is_relative = other.is_relative;
         number_of_electors = other.number_of_electors;
         current_vote_amount = other.current_vote_amount;
 
@@ -78,6 +81,17 @@ County::~County() {}
 
 void County::save(ostream& out) const
 {
+    /*Saving the type of the cycle*/
+    int county_type = -1;
+    if (typeid(*this).name() == typeid(County).name()) {
+        county_type = 0;
+    }
+    else {
+        county_type = 1;
+    }
+
+    out.write(rcastcc(&county_type), sizeof(county_type));
+
     /*Saving the name*/
     int len = name.size();
     out.write(rcastcc(&len), sizeof(len));  
@@ -90,7 +104,7 @@ void County::save(ostream& out) const
     out.write(rcastcc(&id), sizeof(id));
 
     /*Saving if the county is relative*/
-    out.write(rcastcc(&is_relative), sizeof(is_relative));
+    // out.write(rcastcc(&is_relative), sizeof(is_relative));
 
     /*Saving the current vote amount*/
     out.write(rcastcc(&current_vote_amount), sizeof(current_vote_amount));
@@ -122,7 +136,6 @@ void County::load(istream& in)
     name[len] = '\0';
 
     in.read(rcastc(&id), sizeof(id));
-    in.read(rcastc(&is_relative), sizeof(is_relative));
     in.read(rcastc(&current_vote_amount), sizeof(current_vote_amount));
     in.read(rcastc(&number_of_electors), sizeof(number_of_electors));
 

@@ -5,11 +5,10 @@
 #include <typeinfo>
 #include <fstream>
 #include <string>
-#include <vector>
 
 using namespace std;
 
-const int VOTING_AGE = 16;
+const int VOTING_AGE = 18;
 
 template <class T>
 void genSwap(T& a, T& b)
@@ -43,13 +42,8 @@ void addCounty(ComplexCycle* election_cycle) {
     int number_of_electors = 0;
     cout << "Please enter the number of electors in the county: ";
     cin >> number_of_electors;
-    while (number_of_electors <= 0) {
-        cout << "Not a valid number of electors. Please enter a positive number: " << endl;
-        cin >> number_of_electors;
-    }
 
-    County* new_county = new County(county_name, number_of_electors, isRelative);
-    election_cycle->addCounty(new_county);
+    election_cycle->addCounty(county_name, number_of_electors, isRelative);
 
     cout << endl;
 }
@@ -63,30 +57,21 @@ void addResident(ElectionCycle* election_cycle) {
 
     int id = 0;
     cout << "Please enter the resident's ID: ";
-    do {
-        cin >> id;
-        if (id <= 0) {
-            cout << "Non valid ID. Please enter a non negative number: ";
-            id = 0;
+    cin >> id;
+    for (int i = 0; i < election_cycle->residentslen(); i++) {
+        if (id == election_cycle->getResidents()[i]->getId()) {
+            throw invalid_argument("New resident: The selected ID is already in use.");
         }
-
-        for (int i = 0; i < election_cycle->residentslen(); i++) {
-            if (id == election_cycle->getResidents()[i]->getId()) {
-                cout << "This ID is already in use. Please enter a unique ID: ";
-                id = 0;
-            }
-        }
-    } while (id == 0);
+    }
 
     int year_of_birth = 0;
     cout << "please enter the resident's Year of birth: ";
-    do {
-        cin >> year_of_birth;
-        if (year_of_birth > (election_cycle->getDate().getYear() - VOTING_AGE)) {
-            cout << "Resident is too young to vote. Please enter a valid year of birth" << endl;
-            year_of_birth = 0;
-        }
-    } while (year_of_birth == 0);
+    cin >> year_of_birth;
+    if (year_of_birth > (election_cycle->getDate().getYear() - VOTING_AGE)) {
+        throw invalid_argument(
+            "New resident: Invalid year of birth. The resident must be 18 or older, and born AD (positive year number)."
+        );
+    }
 
     if (typeid(*election_cycle).name() == typeid(ComplexCycle).name()) {
 
@@ -94,25 +79,24 @@ void addResident(ElectionCycle* election_cycle) {
 
         int county_id = -1;
         cout << "Please enter the resident's home county ID: ";
-        do {
-            cin >> county_id;
-            if (county_id < 0 || county_id >(complex_cycle->countieslen() - 1)) {
-                cout << "Not a valid county id. Please enter a non negative number up to " << complex_cycle->countieslen() - 1 << ": ";
-                county_id = -1;
-            }
-        } while (county_id == -1);
+        cin >> county_id;
 
-        Citizen* new_resident = new Citizen(resident_name, id, year_of_birth, complex_cycle->getCounty(county_id));
-        complex_cycle->addResident(new_resident);
-        complex_cycle->getCounty(county_id)->addResident(new_resident);
+        if (county_id < 0 || county_id >(complex_cycle->countieslen() - 1)) {
+            throw invalid_argument(
+                "Add resident: invalid home county ID. The home county ID must be a non negative number, and up to the max county ID"
+            );
+        }
+
+        complex_cycle->addResident(resident_name, id, year_of_birth, complex_cycle->getCounty(county_id));
+        complex_cycle->getCounty(county_id)->
+            addResident(complex_cycle->getResidents()[complex_cycle->residentslen() - 1]);
     }
     else {
         SimpleCycle* simple_cycle = dynamic_cast<SimpleCycle*>(election_cycle);
 
         int county_id = 0;
-
-        Citizen* new_resident = new Citizen(resident_name, id, year_of_birth, nullptr);
-        simple_cycle->addResident(new_resident);
+        
+        simple_cycle->addResident(resident_name, id, year_of_birth, nullptr);
     }
 }
 
@@ -139,9 +123,8 @@ void addParty(ElectionCycle* election_cycle) {
         }
     } while (party_leader_id == 0);
 
-    Party* new_party = new Party(party_name, party_leader);
-    election_cycle->addParty(new_party);
-    party_leader->makeRepresentative(new_party);
+    election_cycle->addParty(party_name, party_leader);
+    party_leader->makeRepresentative(election_cycle->getParties()[election_cycle->partieslen() - 1]);
 }
 
 void addPartyRep(ElectionCycle* election_cycle) {
@@ -183,7 +166,13 @@ void addPartyRep(ElectionCycle* election_cycle) {
 void showCounties(ComplexCycle* election_cycle) {
     cout << "County list: " << endl << endl;
     for (int i = 0; i < election_cycle->countieslen(); i++) {
-        cout << i << ". " << *election_cycle->getCounties()[i] << endl;
+        if (typeid(*election_cycle->getCounties()[i]).name() == typeid(RelativeCounty).name()) {
+            RelativeCounty* rel_county = dynamic_cast<RelativeCounty*>(election_cycle->getCounties()[i]);
+            cout << i << ". " << *rel_county << endl;
+        }
+        else {
+            cout << i << ". " << *election_cycle->getCounties()[i] << endl;
+        }
     }
 
     cout << endl;
@@ -245,26 +234,32 @@ void complexElectionResults(ComplexCycle* election_cycle) {
 
     cout << "*****************Printing election results!********************" << endl << endl;
 
-    vector<vector<int>> election_result;                                            //Number of votes for each party in each county
-    election_result.resize(election_cycle->countieslen());
-    vector<vector<double>> percentage_table;                                        //Percentage of received votes for each party in each county
-    percentage_table.resize(election_cycle->countieslen());
-    vector<vector<int>> elected_reps_nums;                                          //Number of electors for each party in each county
-    elected_reps_nums.resize(election_cycle->countieslen());
-    vector<Party*> winner_per_county;                                               //Winning party in each county
-    winner_per_county.resize(election_cycle->countieslen());
-    vector<int> sorted_parties;                                                     //Parties sorted from the most electors to less
-    sorted_parties.resize(election_cycle->partieslen());
-    vector<int> electors_per_party;                                                 //Amount of electors that each party received
-    electors_per_party.resize(election_cycle->partieslen());
-    vector<int> votes_per_party;                                                    //Amount of votes that each party received
-    votes_per_party.resize(election_cycle->partieslen());
+    //Number of votes for each party in each county
+    DynamicArray<DynamicArray<int>> election_result(election_cycle->countieslen());
+
+    //Percentage of received votes for each party in each county
+    DynamicArray<DynamicArray<double>> percentage_table(election_cycle->countieslen());     
+
+    //Number of electors for each party in each county
+    DynamicArray<DynamicArray<int>> elected_reps_nums(election_cycle->countieslen());
+
+    //Winning party in each county
+    DynamicArray<Party*> winner_per_county(election_cycle->countieslen());
+
+    //Parties sorted from the most electors to less
+    DynamicArray<int> sorted_parties(election_cycle->countieslen());
+
+    //Amount of electors that each party received
+    DynamicArray<int> electors_per_party(election_cycle->countieslen());
+
+    //Amount of votes that each party received
+    DynamicArray<int> votes_per_party(election_cycle->countieslen());
 
     for (int i = 0; i < election_cycle->countieslen(); i++)     // Initilization of two dimantional arrays
     {
-        election_result[i].resize(election_cycle->partieslen());
-        percentage_table[i].resize(election_cycle->partieslen());
-        elected_reps_nums[i].resize(election_cycle->partieslen());
+        election_result[i].set_size(election_cycle->partieslen());
+        percentage_table[i].set_size(election_cycle->partieslen());
+        elected_reps_nums[i].set_size(election_cycle->partieslen());
         for (int j = 0; j < election_cycle->partieslen(); j++) {
             election_result[i][j] = 0;
             percentage_table[i][j] = 0;
@@ -327,7 +322,7 @@ void complexElectionResults(ComplexCycle* election_cycle) {
 
 
     for (int i = 0; i < election_cycle->countieslen(); i++) {   // Calculating the sum of electors per party
-        if (election_cycle->getCounty(i)->isRelative()) {
+        if (typeid(*election_cycle->getCounty(i)).name() == typeid(RelativeCounty).name()) {
             for (int j = 0; j < election_cycle->partieslen(); j++) {
                 electors_per_party[j] += elected_reps_nums[i][j];
             }
@@ -388,12 +383,12 @@ void complexElectionResults(ComplexCycle* election_cycle) {
 
 void simpleElectionResults(SimpleCycle* election_cycle) {
 
-    cout << "*****************Printing election results!********************" << endl << endl;
+    cout << "*****************Printing election results!********************" << endl << endl;               
 
-    vector<int> election_results; election_results.resize(election_cycle->partieslen());              //Number of votes for each party.
-    vector<double> percentage_table; percentage_table.resize(election_cycle->partieslen());           //Percentage of received votes for each party.
-    vector<int> elected_reps_nums; elected_reps_nums.resize(election_cycle->partieslen());            //Number of electors for each party.
-    vector<int> sorted_parties; sorted_parties.resize(election_cycle->partieslen());                  //Parties sorted from the most electors to less.
+    DynamicArray<int> election_results(election_cycle->partieslen());           //Number of votes for each party.
+    DynamicArray<double> percentage_table(election_cycle->partieslen());        //Percentage of received votes for each party.
+    DynamicArray<int> elected_reps_nums(election_cycle->partieslen());          //Number of electors for each party.
+    DynamicArray<int> sorted_parties(election_cycle->partieslen());             //Parties sorted from the most electors to less.
 
     /* Arrays initializations */
     for (int i = 0; i < election_cycle->partieslen(); i++) {
@@ -519,7 +514,6 @@ ElectionCycle* loadElectionCycle() {
     }
     election_cycle->load(infile);
 
-
     infile.close();
 
     return election_cycle;
@@ -532,290 +526,300 @@ void mainMenu(ElectionCycle* election_cycle) {
     Save_Cycle, Load_Cycle};
 
     while (choice != 10) {
-        cout << "Please select an option:" << endl;
-        cout << "1.  Add a county." << endl;
-        cout << "2.  Add a citizen." << endl;
-        cout << "3.  Add a party." << endl;
-        cout << "4.  Add a party representative." << endl;
-        cout << "5.  Show all of the counties." << endl;
-        cout << "6.  Show all of the Citizens." << endl;
-        cout << "7.  Show all of the parties." << endl;
-        cout << "8.  Vote." << endl;
-        cout << "9.  Show the election results." << endl;
-        cout << "10. Quit." << endl;
-        cout << "11. Save current election cycle." << endl;
-        cout << "12. Load existing election cycle." << endl << endl;
+        try {
+            cout << "Please select an option:" << endl;
+            cout << "1.  Add a county." << endl;
+            cout << "2.  Add a citizen." << endl;
+            cout << "3.  Add a party." << endl;
+            cout << "4.  Add a party representative." << endl;
+            cout << "5.  Show all of the counties." << endl;
+            cout << "6.  Show all of the Citizens." << endl;
+            cout << "7.  Show all of the parties." << endl;
+            cout << "8.  Vote." << endl;
+            cout << "9.  Show the election results." << endl;
+            cout << "10. Quit." << endl;
+            cout << "11. Save current election cycle." << endl;
+            cout << "12. Load existing election cycle." << endl << endl;
 
-        cin >> choice;
-        cout << endl;
+            cin >> choice;
+            cout << endl;
 
-        if (choice > 12 || choice < 1) {
-            cout << "Not a valid choice. Please choose a number between 1 and 10." << endl << endl;
-            continue;
-        }
-
-        switch (choice) {
-        case Add_county:
-            if (typeid(*election_cycle).name() == typeid(ComplexCycle).name()) {
-                ComplexCycle* complex_cycle = dynamic_cast<ComplexCycle*>(election_cycle);
-                addCounty(complex_cycle);
+            if (choice > 12 || choice < 1) {
+                cout << "Not a valid choice. Please choose a number between 1 and 10." << endl << endl;
+                continue;
             }
-            else {
-                cout << "There are no counties in this election cycle." << endl;
-            }
-            break;
 
-        case Add_citizen:
-            if (typeid(*election_cycle).name() == typeid(ComplexCycle).name()) {
-                ComplexCycle* complex_cycle = dynamic_cast<ComplexCycle*>(election_cycle);
-                if (complex_cycle->countieslen() == 0) {
-                    cout << "There are no counties! please enter a county first." << endl;
+            switch (choice) {
+            case Add_county:
+                if (typeid(*election_cycle).name() == typeid(ComplexCycle).name()) {
+                    ComplexCycle* complex_cycle = dynamic_cast<ComplexCycle*>(election_cycle);
+                    addCounty(complex_cycle);
                 }
-                else { addResident(election_cycle); }
-            }
-            else {
-                addResident(election_cycle);
-            }
-            break;
-
-        case Add_party:
-            if (election_cycle->residentslen() == 0) {
-                cout << "There are no residents! Who will lead the party? (Enter a resident first)" << endl;
-            }
-            else {
-                int non_representatives = 0;
-                for (int i = 0; i < election_cycle->residentslen(); i++) {
-                    if (!election_cycle->getResidents()[i]->isRepresentative()) {
-                        non_representatives = 1;
-                    }
-                }
-
-                if (!non_representatives) {
-                    cout << "All of the existing residents are already representing existing parties. Please add more citizens." << endl;
-                }
-                else { addParty(election_cycle); }
-            }
-            break;
-
-        case Add_rep:
-            if (election_cycle->partieslen() == 0) {
-                cout << "There are no parties to add representatives to. Please add a party first." << endl;
-            }
-            else {
-                bool non_representatives = false;
-                for (int i = 0; i < election_cycle->residentslen(); i++) {
-                    if (!election_cycle->getResidents()[i]->isRepresentative()) {
-                        non_representatives = true;
-                        break;
-                    }
-                }
-
-                if (!non_representatives) {
-                    cout << "All of the existing residents are already representing existing parties. Please add more citizens." << endl;
-                }
-                else { addPartyRep(election_cycle); }
-            }
-            break;
-
-        case Show_counties:
-            if (typeid(*election_cycle).name() == typeid(ComplexCycle).name()) {
-                ComplexCycle* complex_cycle = dynamic_cast<ComplexCycle*>(election_cycle);
-                showCounties(complex_cycle);
-            }
-            else {
-                cout << "There are no counties to speak of." << endl;
-            }
-            break;
-
-        case Show_residents:
-            showResidents(election_cycle);
-            break;
-
-        case Show_parties:
-            showParties(election_cycle);
-            break;
-
-        case Voting:
-
-            if (election_cycle->partieslen() == 0) {
-                cout << "There are no parties to vote to. Please add a party first." << endl;
-            }
-            else if (election_cycle->getVoteAmount() == election_cycle->residentslen()) {
-                cout << "All of the existing residents have already voted! The voting is over." << endl;
-            }
-            else { addVote(election_cycle); }
-            cout << "Thanks for voting!" << endl;
-            break;
-
-        case Results:
-            if (typeid(*election_cycle).name() == typeid(ComplexCycle).name()) {
-                ComplexCycle* complex_cycle = dynamic_cast<ComplexCycle*>(election_cycle);
-                if (complex_cycle->getVoteAmount() == 0)
-                    cout << "Nobody voted! Please vote! You don't want another 2016!" << endl;
                 else {
+                    cout << "There are no counties in this election cycle." << endl;
+                }
+                break;
 
-                    bool valid_reps_nums = true;
-                    vector<vector<int>> representatives_per_party_per_county;
-                    representatives_per_party_per_county.resize(election_cycle->partieslen());
-                    for (int x = 0; x < complex_cycle->partieslen(); x++)    //Initilization of the bucket arrays(representatives_per_party_per_county)
-                    {
-                        representatives_per_party_per_county[x].resize(complex_cycle->countieslen());
-                        for (int z = 0; z < complex_cycle->countieslen(); z++)
-                            representatives_per_party_per_county[x][z] = 0;
+            case Add_citizen:
+                if (typeid(*election_cycle).name() == typeid(ComplexCycle).name()) {
+                    ComplexCycle* complex_cycle = dynamic_cast<ComplexCycle*>(election_cycle);
+                    if (complex_cycle->countieslen() == 0) {
+                        cout << "There are no counties! please enter a county first." << endl;
                     }
-                    for (int i = 0; i < complex_cycle->partieslen() && valid_reps_nums; i++) {
-                        Party* cur_party = complex_cycle->getParties()[i];
-                        for (int j = 0; j < cur_party->partyRepsLen() && valid_reps_nums; j++) {
-                            representatives_per_party_per_county[i][cur_party->getPartyReps()[j]->getHomeCounty()->getId()] += 1;
-                        }
+                    else { addResident(election_cycle); }
+                }
+                else {
+                    addResident(election_cycle);
+                }
+                break;
 
-                        for (int k = 0; k < complex_cycle->countieslen() && valid_reps_nums; k++) {
-                            if (representatives_per_party_per_county[i][k] < complex_cycle->getCounty(k)->getNumberOfElectors()) {
-                                cout << "Party " << i << " does not have enough representatives in county " << k << "." \
-                                    << " Please enter more representatives for the specified county and party." << endl;
-                                valid_reps_nums = false;
-                            }
+            case Add_party:
+                if (election_cycle->residentslen() == 0) {
+                    cout << "There are no residents! Who will lead the party? (Enter a resident first)" << endl;
+                }
+                else {
+                    int non_representatives = 0;
+                    for (int i = 0; i < election_cycle->residentslen(); i++) {
+                        if (!election_cycle->getResidents()[i]->isRepresentative()) {
+                            non_representatives = 1;
                         }
                     }
 
-
-                    if (valid_reps_nums) { complexElectionResults(complex_cycle); }
+                    if (!non_representatives) {
+                        cout << "All of the existing residents are already representing existing parties. Please add more citizens." << endl;
+                    }
+                    else { addParty(election_cycle); }
                 }
-            }
-            else {
-                SimpleCycle* simple_cycle = dynamic_cast<SimpleCycle*>(election_cycle);
-                if (simple_cycle->getVoteAmount() == 0) {
-                    cout << "Nobody voted! Please vote! You don't want another 2016!" << endl;
+                break;
+
+            case Add_rep:
+                if (election_cycle->partieslen() == 0) {
+                    cout << "There are no parties to add representatives to. Please add a party first." << endl;
                 }
                 else {
-                    bool valid_reps_nums = true;
-                    for (int i = 0; i < simple_cycle->partieslen(); i++) {
-                        if (simple_cycle->getParties()[i]->partyRepsLen() < simple_cycle->getNumberOfElectors()) {
-                            cout << "Party: " << simple_cycle->getParties()[i]->getName() << " does not have enough representatives." \
-                                << " Please enter more representatives for the specified party." << endl;
-                            valid_reps_nums = false;
+                    bool non_representatives = false;
+                    for (int i = 0; i < election_cycle->residentslen(); i++) {
+                        if (!election_cycle->getResidents()[i]->isRepresentative()) {
+                            non_representatives = true;
                             break;
                         }
                     }
 
-                    if (valid_reps_nums) { simpleElectionResults(simple_cycle); }
+                    if (!non_representatives) {
+                        cout << "All of the existing residents are already representing existing parties. Please add more citizens." << endl;
+                    }
+                    else { addPartyRep(election_cycle); }
                 }
+                break;
+
+            case Show_counties:
+                if (typeid(*election_cycle).name() == typeid(ComplexCycle).name()) {
+                    ComplexCycle* complex_cycle = dynamic_cast<ComplexCycle*>(election_cycle);
+                    showCounties(complex_cycle);
+                }
+                else {
+                    cout << "There are no counties to speak of." << endl;
+                }
+                break;
+
+            case Show_residents:
+                showResidents(election_cycle);
+                break;
+
+            case Show_parties:
+                showParties(election_cycle);
+                break;
+
+            case Voting:
+
+                if (election_cycle->partieslen() == 0) {
+                    cout << "There are no parties to vote to. Please add a party first." << endl;
+                }
+                else if (election_cycle->getVoteAmount() == election_cycle->residentslen()) {
+                    cout << "All of the existing residents have already voted! The voting is over." << endl;
+                }
+                else { addVote(election_cycle); }
+                cout << "Thanks for voting!" << endl;
+                break;
+
+            case Results:
+                if (typeid(*election_cycle).name() == typeid(ComplexCycle).name()) {
+                    ComplexCycle* complex_cycle = dynamic_cast<ComplexCycle*>(election_cycle);
+                    if (complex_cycle->getVoteAmount() == 0)
+                        throw logic_error("Election results: Nobody voted! Please vote! You don't want another 2016!");
+                    else {
+
+                        DynamicArray<DynamicArray<int>> representatives_per_party_per_county(election_cycle->partieslen());
+                        for (int x = 0; x < complex_cycle->partieslen(); x++)    //Initilization of the bucket arrays(representatives_per_party_per_county)
+                        {
+                            representatives_per_party_per_county[x].set_size(complex_cycle->countieslen());
+                            for (int z = 0; z < complex_cycle->countieslen(); z++)
+                                representatives_per_party_per_county[x][z] = 0;
+                        }
+                        for (int i = 0; i < complex_cycle->partieslen(); i++) {
+                            Party* cur_party = complex_cycle->getParties()[i];
+                            for (int j = 0; j < cur_party->partyRepsLen(); j++) {
+                                representatives_per_party_per_county[i][cur_party->getPartyReps()[j]->getHomeCounty()->getId()] += 1;
+                            }
+
+                            for (int k = 0; k < complex_cycle->countieslen(); k++) {
+                                if (representatives_per_party_per_county[i][k] < complex_cycle->getCounty(k)->getNumberOfElectors()) {
+                                    string err = "Election results: Party " + to_string(i)
+                                        + " does not have enough representatives in county " + to_string(k) + "." \
+                                        + " Please enter more representatives for the specified county and party.";
+
+                                    throw logic_error(err);
+                                }
+                            }
+                        }
+
+                        complexElectionResults(complex_cycle);
+                    }
+                }
+                else {
+                    SimpleCycle* simple_cycle = dynamic_cast<SimpleCycle*>(election_cycle);
+                    if (simple_cycle->getVoteAmount() == 0) {
+                        throw logic_error("Election results: Nobody voted! Please vote! You don't want another 2016!");
+                    }
+                    else {
+                        for (int i = 0; i < simple_cycle->partieslen(); i++) {
+                            if (simple_cycle->getParties()[i]->partyRepsLen() < simple_cycle->getNumberOfElectors()) {
+                                string err = "Party: " + simple_cycle->getParties()[i]->getName()
+                                    + " does not have enough representatives."
+                                    + " Please enter more representatives for the specified party.";
+                                
+                                throw logic_error(err);
+                                break;
+                            }
+                        }
+
+                        simpleElectionResults(simple_cycle);
+                    }
+                }
+                break;
+            case Save_Cycle:
+            {
+                saveElectionCycle(election_cycle);
+                break;
             }
-            break;
-        case Save_Cycle:
-        {
-            saveElectionCycle(election_cycle);
-            break;
+
+            case Load_Cycle:
+                delete election_cycle;
+
+                election_cycle = loadElectionCycle();
+
+                break;
+            }
+
+            cout << endl;
         }
-
-        case Load_Cycle:
-            delete election_cycle;
-
-            election_cycle = loadElectionCycle();
-            
-            break;
+        catch (invalid_argument ex) {
+            cout << ex.what() << endl;
         }
-
-        cout << endl;
+        catch (logic_error ex) {
+            cout << "Logic error: " << ex.what() << endl;
+        }
+        catch (bad_alloc ex) {
+            cout << "Bad alloc: " << ex.what() << endl;
+        }
+        catch (exception ex) {
+            cout << ex.what() << endl;
+            exit(-1);
+        }
     }
 }
 
 void firstMenu() {
-    int choice = 0;
-    ElectionCycle* election_cycle = nullptr;
 
-    enum firstMenu {None, New_Election_Cycle, Load_Election_Cycle, Exit};
+    while (true) {
+        int choice = 0;
+        ElectionCycle* election_cycle = nullptr;
 
-    cout << "Please select an option: " << endl \
-        << "1. Create a new election cycle" << endl \
-        << "2. Load an existing election cycle" << endl \
-        << "3. Quit" << endl << endl;
-    cin >> choice;
+        enum firstMenu { None, New_Election_Cycle, Load_Election_Cycle, Exit };
 
-    while (choice < 1 || choice > 3) {
-        cout << "Not a valid choice. Please enter a number between 1 and 3." << endl;
-    }
+        cout << "Please select an option: " << endl \
+            << "1. Create a new election cycle" << endl \
+            << "2. Load an existing election cycle" << endl \
+            << "3. Quit" << endl << endl;
+        cin >> choice;
 
-    switch (choice)
-    {
-    case New_Election_Cycle:
-    {
-        int day = 0, month = 0, year = 0;
-        cout << "Please choose the day of the election: ";
-        cin >> day;
-        while (day <= 0 || day > 31)
+        while (choice < 1 || choice > 3) {
+            cout << "Not a valid choice. Please enter a number between 1 and 3." << endl;
+        }
+
+        switch (choice)
         {
-            cout << "Day format is wrong. Please enter the number between 1-31. ";
-            cin >> day;
-        }
-
-        cout << "Please choose the month of the election: ";
-        cin >> month;
-        while (month <= 0 || month > 12)
+        case New_Election_Cycle:
         {
-            cout << "Month format is wrong. Please enter the number between 1-12. ";
-            cin >> month;
-        }
+            try {
+                int day = 0, month = 0, year = 0;
+                cout << "Please choose the day of the election: ";
+                cin >> day;
 
-        cout << "Please choose the year of the election: ";
-        cin >> year;
-        while (year < 0)
-        {
-            cout << "Year format is wrong. Please enter a positive number. ";
-            cin >> year;
-        }
+                cout << "Please choose the month of the election: ";
+                cin >> month;
 
-        Date date_of_election(day, month, year);
+                cout << "Please choose the year of the election: ";
+                cin >> year;
 
-        int type;
-        enum electionType { None, Simple_cycle, Complex_cycle };
+                Date date_of_election(day, month, year);
 
-        cout << "Pleae enter the type of the election cycle" \
-            << " (1: Simple election cycle, 2: Complex election cycle): ";
-        cin >> type;
+                int type;
+                enum electionType { None, Simple_cycle, Complex_cycle };
 
-        while (type < 1 || type > 2) {
-            cout << "Not a valid input. Please enter one of the following numbers: \
-                         1 - Simple election cycle, 2 - Complex election cycle";
-            cin >> type;
-        }
+                cout << "Pleae enter the type of the election cycle" \
+                    << " (1: Simple election cycle, 2: Complex election cycle): ";
+                cin >> type;
 
-        if (type == Simple_cycle) {
-            int number_of_electors = 0;
-            cout << "Please choose the number of electors in the election cycle: ";
-            cin >> number_of_electors;
+                while (type < 1 || type > 2) {
+                    cout << "Not a valid input. Please enter one of the following numbers: \
+                                 1 - Simple election cycle, 2 - Complex election cycle";
+                    cin >> type;
+                }
 
-            while (number_of_electors < 0) {
-                cout << "Not a valid number of electors. Please choose a positive number: ";
-                cin >> number_of_electors;
+                if (type == Simple_cycle) {
+                    int number_of_electors = 0;
+                    cout << "Please choose the number of electors in the election cycle: ";
+                    cin >> number_of_electors;
+
+                    election_cycle = new SimpleCycle(date_of_election, number_of_electors);
+                    mainMenu(election_cycle);
+                }
+                else if (type == Complex_cycle) {
+                    election_cycle = new ComplexCycle(date_of_election);
+                    mainMenu(election_cycle);
+                }
+            }
+            catch (invalid_argument ex) {
+                cout << ex.what() << endl;
+            }
+            catch (bad_alloc ex) {
+                cout << ex.what() << endl;
+            }
+            catch (exception ex) {
+                cout << ex.what() << endl;
+                exit(-1);
             }
 
-            election_cycle = new SimpleCycle(date_of_election, number_of_electors);
-            mainMenu(election_cycle);
+            break;
         }
-        else if (type == Complex_cycle) {
-            election_cycle = new ComplexCycle(date_of_election);
+        case Load_Election_Cycle:
+
+            if (election_cycle)
+                delete election_cycle;
+
+            election_cycle = loadElectionCycle();
             mainMenu(election_cycle);
+
+            break;
+
+        case Exit:
+            return;
+            break;
+
+        default:
+            break;
         }
-
-        break;
-    }
-    case Load_Election_Cycle:
-
-        if (election_cycle)
-            delete election_cycle;
-
-        election_cycle = loadElectionCycle();
-        mainMenu(election_cycle);
-
-        break;
-
-    case Exit:
-        return;
-        break;
-
-    default:
-        break;
     }
 }
 

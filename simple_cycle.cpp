@@ -9,7 +9,11 @@ SimpleCycle::SimpleCycle() :
 SimpleCycle::SimpleCycle(Date& _date_of_election, int number_of_electors) :
 	ElectionCycle(_date_of_election), number_of_electors(number_of_electors),
 	chosen_electors(DynamicArray<Citizen*>())
-{}
+{
+	if (number_of_electors < 1) {
+		throw invalid_argument("Simple cycle: Number of electors is not valid.");
+	}
+}
 
 SimpleCycle::~SimpleCycle() {}
 
@@ -78,7 +82,7 @@ void SimpleCycle::load(istream& in) {
 
 	/* Loading the residents */
 	int cur_home_county = -1;
-	int* voted_parties = new int[residents_size];
+	DynamicArray<int> voted_parties;
 	for (int i = 0; i < residents_size; i++) {
 		residents[i] = new Citizen();
 
@@ -139,7 +143,4 @@ void SimpleCycle::load(istream& in) {
 		if (voted_parties[i] != -1)
 			residents[i]->setVoted(parties[voted_parties[i]]);
 	}
-
-	/* Freeing the memory */
-	delete[] voted_parties;
 }

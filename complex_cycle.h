@@ -1,6 +1,6 @@
 #pragma once
 #include "election_cycle.h"
-#include <vector>
+#include <typeinfo>
 
 class ComplexCycle : public ElectionCycle {
 private:
@@ -18,12 +18,12 @@ public:
     County* getCounty(int id) const { return counties[id]; }
 
     /* Adders */
-    bool addCounty(County* county);
+    bool addCounty(string county_name, int number_of_electors, bool is_relative);
 
     /* Operators */
     friend ostream& operator<<(ostream& os, const ComplexCycle& election_cycle);
 
-    /*Serialization*/
+    /* Serialization */
     virtual void save(ostream& out) const;
     virtual void load(istream& in);
 };

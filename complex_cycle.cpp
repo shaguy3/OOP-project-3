@@ -11,10 +11,22 @@ ComplexCycle::ComplexCycle(Date& _date_of_election) :
     counties(DynamicArray<County*>())
 {}
 
-ComplexCycle::~ComplexCycle() {}
+ComplexCycle::~ComplexCycle() {
+    for (int i = 0; i < counties.size(); i++) {
+        delete counties[i];
+    }
+}
 
-bool ComplexCycle::addCounty(County* county) {
-    counties.push_back(county);
+bool ComplexCycle::addCounty(string county_name, int number_of_electors, bool is_relative) {
+    if (is_relative) {
+        County* county = new RelativeCounty(county_name, number_of_electors);
+        counties.push_back(county);
+    }
+    else {
+        County* county = new County(county_name, number_of_electors);
+        counties.push_back(county);
+    }
+
     return true;
 }
 
@@ -56,8 +68,9 @@ void ComplexCycle::save(ostream& out) const {
     int counties_size = counties.size();
     out.write(rcastcc(&counties_size), sizeof(counties_size));
 
-    for (int i = 0; i < counties_size; i++)
+    for (int i = 0; i < counties_size; i++) {
         counties[i]->save(out);
+    }
 
     /* Saving the logical number of residents */
     int residents_size = residents.size();
@@ -92,17 +105,26 @@ void ComplexCycle::load(istream& in) {
 
     County::num_of_counties = counties_size;                         // Static amount of counties
 
-    int** chosen_electors_arr = new int* [counties_size];
+    DynamicArray<DynamicArray<int>> chosen_electors_arr(counties_size);
 
     /* Loading the counties */
     for (int i = 0; i < counties_size; i++)
     {
-        counties[i] = new County();
+        // Checking the type of the county
+        int county_type = -1;
+        in.read(rcastc(&county_type), sizeof(county_type));
+
+        if (county_type == 0) {
+            counties[i] = new County();
+        }
+        else {
+            counties[i] = new RelativeCounty();
+        }
         counties[i]->load(in);
         
         /* Reading the ids of the electors */
         if (counties[i]->chosenElectorsLen() > 0) {
-            chosen_electors_arr[i] = new int[counties[i]->chosenElectorsLen()];
+            chosen_electors_arr[i].set_size(counties[i]->chosenElectorsLen());
             for (int j = 0; j < counties[i]->chosenElectorsLen(); j++)
             {
                 in.read(rcastc(&chosen_electors_arr[i][j]), sizeof(chosen_electors_arr[i][j]));
@@ -118,9 +140,9 @@ void ComplexCycle::load(istream& in) {
 
     /* Loading the residents */
     int cur_home_county = -1;
-    int* voted_parties = nullptr;
+    DynamicArray<int> voted_parties;
     if (residents_size > 0) {
-        voted_parties = new int[residents_size];
+        voted_parties.set_size(residents_size);
         for (int i = 0; i < residents_size; i++) {
             residents[i] = new Citizen();
 
@@ -170,17 +192,4 @@ void ComplexCycle::load(istream& in) {
         if (voted_parties[i] != -1)
             residents[i]->setVoted(parties[voted_parties[i]]);
     }
-
-    /* Freeing the memory */
-    for (int i = 0; i < counties_size; i++)
-    {
-        if (counties[i]->chosenElectorsLen() > 0) {
-            delete[] chosen_electors_arr[i];
-        }
-    }
-
-    if (chosen_electors_arr)
-        delete[] chosen_electors_arr;
-    delete[] voted_parties;
-
 }

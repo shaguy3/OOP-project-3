@@ -7,9 +7,9 @@ Date::Date() :
 Date::Date(int _day, int _month, int _year) :
     day(0), month(0), year(0)
 {
-    if (_day > 31 || _day < 1) { throw invalid_argument("Invalid day num"); }
-    if (_month > 12 || _month < 1) { throw invalid_argument("Invalid month num"); }
-    if (_year <= 0) { throw invalid_argument("Invalid year num"); }
+    if (_day > 31 || _day < 1) { throw invalid_argument("Date: Invalid day num"); }
+    if (_month > 12 || _month < 1) { throw invalid_argument("Date: Invalid month num"); }
+    if (_year <= 0) { throw invalid_argument("Date: Invalid year num"); }
 
     day = _day;
     month = _month;

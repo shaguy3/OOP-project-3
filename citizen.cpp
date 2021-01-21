@@ -14,7 +14,13 @@ Citizen::Citizen(const string _name, int _id, int _year_of_birth, County* _home_
     home_county(_home_county),
     is_representative(nullptr),
     has_voted(nullptr)
-{}
+{
+    if (_id < 100000000 || id > 999999999) {
+        throw invalid_argument(
+            "New resident: Invalid ID. The ID must be a positive 9 digit number."
+        );
+    }
+}
 
 Citizen::~Citizen()
 {}

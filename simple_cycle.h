@@ -1,6 +1,7 @@
 #pragma once
 #include "election_cycle.h"
 #include <fstream>
+#include <exception>
 
 using namespace std;
 

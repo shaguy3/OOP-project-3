@@ -4,6 +4,7 @@
 #include "party.h"
 #include "county.h"
 #include "dynamic_array.h"
+#include <string>
 #include <iostream>
 #include <string.h>
 
@@ -36,8 +37,8 @@ public:
 
     /* Adders */
     bool addVote();
-    bool addResident(Citizen* resident);
-    bool addParty(Party* party);
+    bool addResident(string resident_name, int id, int year_of_birth, County* home_county);
+    bool addParty(string party_name, Citizen* party_leader);
 
     /* Serialization */
     virtual void save(ostream& out) const = 0;
