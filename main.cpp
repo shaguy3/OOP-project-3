@@ -10,7 +10,7 @@ using namespace std;
 
 const int VOTING_AGE = 18;
 
-template <class T>
+template <class T>     
 void genSwap(T& a, T& b)
 {
     T temp = a;
@@ -345,20 +345,17 @@ void complexElectionResults(ComplexCycle* election_cycle) {
 
     for (int i = 0; i < election_cycle->countieslen(); i++)     // Initilization of two dimantional arrays
     {
-        election_result[i].set_size(election_cycle->partieslen());
-        percentage_table[i].set_size(election_cycle->partieslen());
-        elected_reps_nums[i].set_size(election_cycle->partieslen());
         for (int j = 0; j < election_cycle->partieslen(); j++) {
-            election_result[i][j] = 0;
-            percentage_table[i][j] = 0;
-            elected_reps_nums[i][j] = 0;
+            election_result[i].push_back(0);
+            percentage_table[i].push_back(0);
+            elected_reps_nums[i].push_back(0);
         }
     }
 
     for (int i = 0; i < election_cycle->partieslen(); i++) {    // Initialization of one dimantional arrays
-        sorted_parties[i] = i;
-        electors_per_party[i] = 0;
-        votes_per_party[i] = 0;
+        sorted_parties.push_back(i);
+        electors_per_party.push_back(0);
+        votes_per_party.push_back(0);
     }
 
     for (int i = 0; i < election_cycle->residentslen(); i++)    // Counting the votes for each county and party
@@ -467,6 +464,7 @@ void complexElectionResults(ComplexCycle* election_cycle) {
             << " with " << votes_per_party[sorted_parties[i]] << " votes" \
             << " and " << electors_per_party[sorted_parties[i]] << " electors. " << endl;
     }
+
 }
 
 void simpleElectionResults(SimpleCycle* election_cycle) {

@@ -175,13 +175,12 @@ void ComplexCycle::load(istream& in) {
 
         /* Loading the party reps numbers */
         in.read(rcastc(&party_reps_size), sizeof(party_reps_size));
-        parties[i]->getPartyReps().set_size(party_reps_size);
 
         /* Adding the party reps */
         int cur_party_rep_id = 0;
         for (int j = 0; j < party_reps_size; j++) {
             in.read(rcastc(&cur_party_rep_id), sizeof(cur_party_rep_id));
-            parties[i]->getPartyReps()[j] = getResident(cur_party_rep_id);
+            parties[i]->getPartyReps().push_back(getResident(cur_party_rep_id));
             getResident(cur_party_rep_id)->makeRepresentative(parties[i]);
         }
     }

@@ -25,8 +25,8 @@ public:
 
     /* Getters */
     Date& getDate() { return date_of_election; }
-    DynamicArray<Citizen*> getResidents() const { return residents; }
-    DynamicArray<Party*> getParties() const { return parties; }
+    DynamicArray<Citizen*>& getResidents()  { return residents; }
+    DynamicArray<Party*>& getParties()  { return parties; }
     int getVoteAmount() const { return current_vote_amount; }
     int residentslen() const { return residents.size(); }
     int partieslen() const { return parties.size(); }

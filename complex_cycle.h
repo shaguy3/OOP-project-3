@@ -13,7 +13,7 @@ public:
     virtual ~ComplexCycle();
 
     /* Getters */
-    DynamicArray<County*> getCounties() const { return counties; }
+    DynamicArray<County*>& getCounties() { return counties; }
     int countieslen() const { return counties.size(); }
     County* getCounty(int id) const { return counties[id]; }
 

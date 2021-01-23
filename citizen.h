@@ -21,6 +21,7 @@ private:
     int id;
     int year_of_birth;
     County* home_county;
+   /* County* rep_county;*/
     Party* is_representative;
     Party* has_voted;
 

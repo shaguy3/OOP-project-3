@@ -34,9 +34,9 @@ public:
     int getId() const { return id; }
     int getVoteAmount() const { return current_vote_amount; }
     int getNumberOfElectors() const { return number_of_electors; }
-    DynamicArray<Citizen*> getResidents() const { return residents; }
+    DynamicArray<Citizen*>& getResidents()  { return residents; }
     int residentsLen() const { return residents.size(); }
-    DynamicArray<Citizen*> getChosenElectors() const { return chosen_electors; }
+    DynamicArray<Citizen*>& getChosenElectors()  { return chosen_electors; }
     int chosenElectorsLen() const { return chosen_electors.size(); }
 
     /* Setters */

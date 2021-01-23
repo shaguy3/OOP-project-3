@@ -21,7 +21,7 @@ public:
 
 	/* Getters */
 	int getNumberOfElectors() const { return number_of_electors; }
-	DynamicArray<Citizen*> getChosenElectors() const { return chosen_electors; }
+	DynamicArray<Citizen*>& getChosenElectors() { return chosen_electors; }
 	int chosenElectorsLen() const { return chosen_electors.size(); }
 
 	/* Adders */

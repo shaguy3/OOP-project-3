@@ -32,7 +32,7 @@ public:
     string getName() { return name; }
     int getId() { return id; }
     Citizen* getLeader() { return party_leader; }
-    DynamicArray<Citizen*> getPartyReps() { return party_reps; }
+    DynamicArray<Citizen*>& getPartyReps() { return party_reps; }
     int partyRepsLen() const { return party_reps.size(); }
 
     /* Setters */
