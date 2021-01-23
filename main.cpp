@@ -176,32 +176,42 @@ void addPartyRep(ElectionCycle* election_cycle) {
     Party* relevant_party = nullptr;
     int party_rep_id = -1;
     cout << "Please enter the ID of the party's representative: ";
-    do {
-        cin >> party_rep_id;
-        relevant_citizen = election_cycle->getResident(party_rep_id);
-        if (!relevant_citizen) {
-            cout << "There is no resident with matching ID. Please enter an existing resident's ID: ";
-            party_rep_id = -1;
-        }
+    cin >> party_rep_id;
+    relevant_citizen = election_cycle->getResident(party_rep_id);
+    if (!relevant_citizen) {
+        throw invalid_argument("addPartyRep: There is no resident with matching ID.");
+    }
 
-        else if (relevant_citizen->isRepresentative()) {
-            cout << "This resident is already a representative. Please select another citizen: ";
-            party_rep_id = -1;
-        }
-    } while (party_rep_id == -1);
+    else if (relevant_citizen->isRepresentative()) {
+        throw invalid_argument("addPartyRep: This resident is already a representative.");
+    }
+   
 
     string party_name;
     cin.ignore();
     cout << "Please enter the name of the party representative's party: ";
-    do {
         
-        getline(cin, party_name);
-        relevant_party = election_cycle->getParty(party_name);
-        if (!relevant_party) {
-            cin.ignore();
-            cout << "There is no party with that name. Please select an existing name: ";
+    getline(cin, party_name);
+    relevant_party = election_cycle->getParty(party_name);
+    if (!relevant_party) {
+        cin.ignore();
+        throw invalid_argument("addPartyRep: There is no party with that name.");
+    }
+
+    if (typeid(*election_cycle).name() == typeid(ComplexCycle).name())
+    {
+        ComplexCycle* complex_cycle = dynamic_cast<ComplexCycle*>(election_cycle);
+
+        int rep_county = -1;
+        cout << "Please enter the ID of the represented county: ";
+        cin >> rep_county;
+        if (rep_county < 0 || rep_county > complex_cycle->countieslen())
+            throw invalid_argument("addPartyRep: County number is invalid. ");
+        else {
+            relevant_citizen->setRepCounty(complex_cycle->getCounty(rep_county));
         }
-    } while (!relevant_party);
+    }
+
 
     relevant_citizen->makeRepresentative(relevant_party);
     relevant_party->addPartyRep(election_cycle->getResident(party_rep_id));
@@ -276,30 +286,26 @@ void addVote(ElectionCycle* election_cycle) {
     Citizen* voter = nullptr;
     int voter_id = -1;
     cout << "Please enter the ID of the voter: ";
-    do {
-        cin >> voter_id;
-        voter = election_cycle->getResident(voter_id);
-        if (!voter) {
-            cout << "There is no resident with matching ID. Please enter an existing resident's ID: ";
-            voter_id = -1;
-        }
-        else if (voter->hasVoted()) {
-            cout << "This resident has already voted. Please select another citizen: ";
-            voter_id = -1;
-        }
-    } while (voter_id == -1);
+  
+    cin >> voter_id;
+    voter = election_cycle->getResident(voter_id);
+    if (!voter) {
+        throw invalid_argument("addVote: There is no resident with matching ID.");
+    }
+    else if (voter->hasVoted()) {
+        throw invalid_argument("addVote: This resident has already voted.");
+    }
 
     Party* voted_party = nullptr;
     string party_name;
     cin.ignore();
     cout << "Please enter the party name which the resident voted for: ";
-    do {
-        getline(cin, party_name);
-        voted_party = election_cycle->getParty(party_name);
-        if (!voted_party) {
-            cout << "There is no party with that name. Please select an existing name: ";
-        }
-    } while (!voted_party);
+  
+    getline(cin, party_name);
+    voted_party = election_cycle->getParty(party_name);
+    if (!voted_party) {
+        throw invalid_argument("addVote: There is no party with that name.");
+    }
 
     voter->setVoted(voted_party);
     if (voter->getHomeCounty()) { voter->getHomeCounty()->addVote(); }
@@ -420,10 +426,10 @@ void complexElectionResults(ComplexCycle* election_cycle) {
     for (int j = 0; j < election_cycle->partieslen(); j++) {    // Adding electors to each county
         for (int k = 0; k < election_cycle->getParties()[j]->partyRepsLen(); k++) {
             Citizen* chosen_elector = election_cycle->getParties()[j]->getPartyReps()[k];
-            int home_county_id = chosen_elector->getHomeCounty()->getId();
-            if (elected_reps_nums[home_county_id][j] > 0) {
-                election_cycle->getCounty(home_county_id)->addChosenElector(chosen_elector);
-                elected_reps_nums[home_county_id][j] -= 1;
+            int rep_county_id = chosen_elector->getRepCounty()->getId();
+            if (elected_reps_nums[rep_county_id][j] > 0) {
+                election_cycle->getCounty(rep_county_id)->addChosenElector(chosen_elector);
+                elected_reps_nums[rep_county_id][j] -= 1;
             }
         }
     }
@@ -551,9 +557,10 @@ void simpleElectionResults(SimpleCycle* election_cycle) {
     cout << "Final results: " << endl << endl;
     for (int i = 0; i < election_cycle->partieslen(); i++) {
         cout << i + 1 << " place: " << election_cycle->getParties()[sorted_parties[i]]->getLeader()->getName() \
-            << " with " << election_results[i] << " votes" \
+            << " with " << election_results[sorted_parties[i]] << " votes" \
             << " and " << elected_reps_nums[sorted_parties[i]] << " electors." << endl;
     }
+
 }
 
 void mainMenu_showResults(ElectionCycle* election_cycle)
@@ -574,7 +581,7 @@ void mainMenu_showResults(ElectionCycle* election_cycle)
             for (int i = 0; i < complex_cycle->partieslen(); i++) {
                 Party* cur_party = complex_cycle->getParties()[i];
                 for (int j = 0; j < cur_party->partyRepsLen(); j++) {
-                    representatives_per_party_per_county[i][cur_party->getPartyReps()[j]->getHomeCounty()->getId()] += 1;
+                    representatives_per_party_per_county[i][cur_party->getPartyReps()[j]->getRepCounty()->getId()] += 1;
                 }
 
                 for (int k = 0; k < complex_cycle->countieslen(); k++) {
@@ -861,7 +868,7 @@ int main() {
         << "3. Adding a party requires an existing non representative citizen." << endl \
         << "4. Adding a party representative requires an existing party, and a non representative citizen." << endl \
         << "5. The leader of the party is automatically a party representative, but isn't included in party representative list per county. " << endl \
-        << "6. Citizens can only represent their home county." << endl << endl;
+        << endl << endl;
 
     firstMenu();
 

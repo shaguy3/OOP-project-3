@@ -5,12 +5,15 @@ Citizen::Citizen() :
     id(0),
     year_of_birth(0),
     home_county(nullptr),
+    rep_county(nullptr),
     is_representative(nullptr),
     has_voted(nullptr)
+
 {}
 
 Citizen::Citizen(const Citizen& other) : name(other.name), id(other.id), year_of_birth(other.year_of_birth), 
-  home_county(other.home_county), is_representative(other.isRepresentative()), has_voted(other.hasVoted())
+  home_county(other.home_county), is_representative(other.isRepresentative()), has_voted(other.hasVoted()),
+  rep_county(nullptr)
 {
 
 }
@@ -18,6 +21,7 @@ Citizen::Citizen(const Citizen& other) : name(other.name), id(other.id), year_of
 Citizen::Citizen(const string _name, const int _id, const int _year_of_birth, County* _home_county)
     : name(_name), id(_id), year_of_birth(_year_of_birth),
     home_county(_home_county),
+    rep_county(nullptr),
     is_representative(nullptr),
     has_voted(nullptr)
 {
@@ -76,6 +80,12 @@ bool Citizen::setHomeCounty(County* county) {
     return true;
 }
 
+bool Citizen::setRepCounty(County* county) {
+    rep_county = county;
+
+    return true;
+}
+
 void Citizen::save(ostream& out) const {
     /*Saving the name*/
     int len = name.size();
@@ -97,6 +107,13 @@ void Citizen::save(ostream& out) const {
         county_id = home_county->getId();
     }
     out.write(rcastcc(&county_id), sizeof(county_id));
+
+    /*Saving the rep county id*/
+    int rep_id = -1;
+    if (rep_county) {
+        rep_id = rep_county->getId();
+    }
+    out.write(rcastcc(&rep_id), sizeof(rep_id));
 
     /*Saving the voted party*/
     int voted_party = -1;

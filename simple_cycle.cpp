@@ -78,30 +78,33 @@ void SimpleCycle::load(istream& in) {
 	/* Loading the numbers of residents */
 	int residents_size;
 	in.read(rcastc(&residents_size), sizeof(residents_size));
-	residents.set_size(residents_size);
 
 	/* Loading the residents */
 	int cur_home_county = -1;
+	int cur_rep_county = -1;
+	int cur_voted_party = -1;
 	DynamicArray<int> voted_parties;
+
 	for (int i = 0; i < residents_size; i++) {
-		residents[i] = new Citizen();
+		residents.push_back(new Citizen());
 
 		residents[i]->load(in);
 		in.read(rcastc(&cur_home_county), sizeof(cur_home_county));
-		in.read(rcastc(&voted_parties[i]), sizeof(voted_parties[i]));
+		in.read(rcastc(&cur_rep_county), sizeof(cur_rep_county));
+		in.read(rcastc(&cur_voted_party), sizeof(cur_voted_party));
+		voted_parties.push_back(cur_voted_party);
 	}
 
 	/* Loading the numbers of the parties */
 	int parties_size;
 	in.read(rcastc(&parties_size), sizeof(parties_size));
-	parties.set_size(parties_size);
 
 	Party::number_of_parties = parties_size;
 
 	/* Loading the parties */
 	int cur_leader_id = 0, cur_size = 0, cur_logi_size = 0;
 	for (int i = 0; i < parties_size; i++) {
-		parties[i] = new Party();
+		parties.push_back(new Party());
 
 		parties[i]->load(in);
 
@@ -117,7 +120,7 @@ void SimpleCycle::load(istream& in) {
 		int cur_party_rep_id = 0;
 		for (int j = 0; j < cur_logi_size; j++) {
 			in.read(rcastc(&cur_party_rep_id), sizeof(cur_party_rep_id));
-			parties[i]->getPartyReps()[j] = getResident(cur_party_rep_id);
+			parties[i]->getPartyReps().push_back(getResident(cur_party_rep_id));
 			getResident(cur_party_rep_id)->makeRepresentative(parties[i]);
 		}
 	}
@@ -128,7 +131,6 @@ void SimpleCycle::load(istream& in) {
 	/* Loading the numbers of the chosen electors */
 	int chosen_electors_size;
 	in.read(rcastc(&chosen_electors_size), sizeof(chosen_electors_size));
-	chosen_electors.set_size(chosen_electors_size);
 
 	/* Loading the chosen electors */
 	int cur_chosen_elector_id = 0;

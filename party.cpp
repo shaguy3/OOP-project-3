@@ -35,7 +35,7 @@ ostream& operator<<(ostream& os, const Party& party)
         for (int i = 0; i < County::num_of_counties; i++) {
             os << "County num " << i << ":" << endl;
             for (int j = 0; j < party.party_reps.size(); j++) {
-                if (party.party_reps[j]->getHomeCounty()->getId() == i) {
+                if (party.party_reps[j]->getRepCounty()->getId() == i) {
                     os << *party.party_reps[j] << endl << endl;
                 }
             }

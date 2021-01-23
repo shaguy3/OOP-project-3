@@ -21,7 +21,7 @@ private:
     int id;
     int year_of_birth;
     County* home_county;
-   /* County* rep_county;*/
+    County* rep_county;
     Party* is_representative;
     Party* has_voted;
 
@@ -37,6 +37,7 @@ public:
     int getId() const { return id; }
     int getYearOfBirth() const { return year_of_birth; }
     County* getHomeCounty() const { return home_county; }
+    County* getRepCounty() const { return rep_county; }
     Party* hasVoted() const { return has_voted; }
     Party* isRepresentative() const { return is_representative; }
 
@@ -44,6 +45,7 @@ public:
     bool makeRepresentative(Party* party_name);
     bool setVoted(Party* party_name);
     bool setHomeCounty(County* county);
+    bool setRepCounty(County* county);
 
     /* Operators */
     friend ostream& operator<<(ostream& os, const Citizen& other);

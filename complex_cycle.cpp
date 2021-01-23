@@ -140,6 +140,7 @@ void ComplexCycle::load(istream& in) {
 
     /* Loading the residents */
     int cur_home_county = -1;
+    int cur_rep_county = -1;
     DynamicArray<int> voted_parties;
     if (residents_size > 0) {
         voted_parties.set_size(residents_size);
@@ -149,6 +150,9 @@ void ComplexCycle::load(istream& in) {
             residents[i]->load(in);
             in.read(rcastc(&cur_home_county), sizeof(cur_home_county));
             residents[i]->setHomeCounty(counties[cur_home_county]);
+            in.read(rcastc(&cur_rep_county), sizeof(cur_rep_county));
+            if (cur_rep_county != -1)
+                residents[i]->setRepCounty(counties[cur_rep_county]);
             counties[cur_home_county]->addResident(residents[i]);
             in.read(rcastc(&voted_parties[i]), sizeof(voted_parties[i]));
         }
