@@ -50,6 +50,19 @@ ostream& operator<<(ostream& os, const Party& party)
     return os;
 }
 
+const Party& Party::operator=(const Party& other)
+{
+    if (this != &other)
+    {
+        name = other.name;
+        id = other.id;
+        party_leader = other.party_leader;
+        party_reps = other.party_reps;
+
+    }
+    return *this;
+}
+
 void Party::save(ostream& out) const {
     /*Saving the name*/
     int len = name.size();

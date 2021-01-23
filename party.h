@@ -42,6 +42,7 @@ public:
     bool addPartyRep(Citizen* citizen);         //Add the citizen as party rep
 
     /* Operators */
+    const Party& operator=(const Party& other);
     friend ostream& operator<<(ostream& os, const Party& party);
 
     /* Serialization */

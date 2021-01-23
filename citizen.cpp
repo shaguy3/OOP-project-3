@@ -9,7 +9,13 @@ Citizen::Citizen() :
     has_voted(nullptr)
 {}
 
-Citizen::Citizen(const string _name, int _id, int _year_of_birth, County* _home_county)
+Citizen::Citizen(const Citizen& other) : name(other.name), id(other.id), year_of_birth(other.year_of_birth), 
+  home_county(other.home_county), is_representative(other.isRepresentative()), has_voted(other.hasVoted())
+{
+
+}
+
+Citizen::Citizen(const string _name, const int _id, const int _year_of_birth, County* _home_county)
     : name(_name), id(_id), year_of_birth(_year_of_birth),
     home_county(_home_county),
     is_representative(nullptr),
@@ -40,7 +46,7 @@ std::ostream& operator<<(std::ostream& os, const Citizen& other)
     return os;
 }
 
-void Citizen::operator=(const Citizen& other) {
+const Citizen& Citizen::operator=(const Citizen& other) {
     if (this != &other) {
         name = other.name;
         id = other.id;
@@ -49,6 +55,7 @@ void Citizen::operator=(const Citizen& other) {
         is_representative = other.is_representative;
         has_voted = other.has_voted;
     }
+    return *this;
 }
 
 bool Citizen::makeRepresentative(Party* party_name) {

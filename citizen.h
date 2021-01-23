@@ -27,6 +27,7 @@ private:
 public:
     /* Constructors & Destructors */
     Citizen();
+    Citizen(const Citizen& other);
     Citizen(const string _name, int _id, int _year_of_birth, County* _home_county);
     ~Citizen();
 
@@ -45,7 +46,7 @@ public:
 
     /* Operators */
     friend ostream& operator<<(ostream& os, const Citizen& other);
-    void operator=(const Citizen& other);
+    const Citizen& operator=(const Citizen& other);
 
     /* Serialization */
     void save(ostream& out) const;
