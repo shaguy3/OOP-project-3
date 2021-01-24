@@ -206,7 +206,7 @@ void addPartyRep(ElectionCycle* election_cycle) {
         cout << "Please enter the ID of the represented county: ";
         cin >> rep_county;
         if (rep_county < 0 || rep_county > complex_cycle->countieslen())
-            throw invalid_argument("addPartyRep: County number is invalid. ");
+            throw invalid_argument("addPartyRep: County number is invalid.");
         else {
             relevant_citizen->setRepCounty(complex_cycle->getCounty(rep_county));
         }
@@ -438,7 +438,12 @@ void complexElectionResults(ComplexCycle* election_cycle) {
     cout << "Chosen county electors:" << endl;
     for (int i = 0; i < election_cycle->countieslen(); i++) {
         cout << "County #" << i << ":" << endl;
-        cout << *election_cycle->getCounty(i) << endl;
+        if (typeid(*election_cycle->getCounty(i)) == typeid(RelativeCounty)) {
+            cout << *dynamic_cast<RelativeCounty*>(election_cycle->getCounty(i)) << endl;
+        }
+        else {
+            cout << *election_cycle->getCounty(i) << endl;
+        }
         for (int j = 0; j < election_cycle->getCounty(i)->chosenElectorsLen(); j++) {
             cout << *election_cycle->getCounty(i)->getChosenElectors()[j];
             cout << "Party: " << election_cycle->getCounty(i)->getChosenElectors()[j]->isRepresentative()->getName() << endl << endl;
@@ -567,6 +572,15 @@ void mainMenu_showResults(ElectionCycle* election_cycle)
 {
     if (typeid(*election_cycle).name() == typeid(ComplexCycle).name()) {
         ComplexCycle* complex_cycle = dynamic_cast<ComplexCycle*>(election_cycle);
+
+        for (int i = 0; i < complex_cycle->countieslen(); i++) {
+            if (complex_cycle->getCounty(i)->getVoteAmount() == 0) {
+                string err = "Election results: Nobody voted in county with the ID: "
+                    + to_string(i) + ". Please add votes in the specified county.";
+                throw logic_error(err);
+            }
+        }
+
         if (complex_cycle->getVoteAmount() == 0)
             throw logic_error("Election results: Nobody voted! Please vote! You don't want another 2016!");
         else {
