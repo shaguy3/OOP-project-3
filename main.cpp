@@ -133,19 +133,14 @@ void addParty(ElectionCycle* election_cycle) {
 
     int party_leader_id = 0;
     cout << "Please enter the ID of the party's Leader: ";
-    do {
-        cin >> party_leader_id;
-        party_leader = election_cycle->getResident(party_leader_id);
-        if (!party_leader) {
-            cout << "There is no resident with matching ID. Please enter an existing resident's ID: ";
-            party_leader_id = 0;
-        }
-
-        else if (party_leader->isRepresentative()) {
-            cout << "This resident is already a representative. Please select another citizen: ";
-            party_leader_id = 0;
-        }
-    } while (party_leader_id == 0);
+    cin >> party_leader_id;
+    party_leader = election_cycle->getResident(party_leader_id);
+    if (!party_leader) {
+        throw invalid_argument("There is no resident with matching ID.");
+    }
+    else if (party_leader->isRepresentative()) {
+        throw invalid_argument("This resident is already a representative.");
+    }
 
     election_cycle->addParty(party_name, party_leader);
     party_leader->makeRepresentative(election_cycle->getParties()[election_cycle->partieslen() - 1]);
@@ -877,7 +872,6 @@ int main() {
 
     /* Main program */
     cout << "Hello! and welcome to our computerized election system. Please read the software requirements below: " << endl \
-        << "1. All of the string inputs are maxed at length of 30" << endl \
         << "2. Adding a citizen requires an existing county." << endl \
         << "3. Adding a party requires an existing non representative citizen." << endl \
         << "4. Adding a party representative requires an existing party, and a non representative citizen." << endl \
